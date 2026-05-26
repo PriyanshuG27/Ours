@@ -55,6 +55,7 @@ export function SpaceSetup() {
           if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
           }
+          router.refresh();
           router.push("/home");
         }
       } catch {
@@ -134,6 +135,7 @@ export function SpaceSetup() {
         return;
       }
 
+      router.refresh();
       router.push("/home");
     } catch {
       setStatus("error");

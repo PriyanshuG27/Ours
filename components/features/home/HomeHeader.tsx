@@ -14,14 +14,21 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
-export function HomeHeader() {
-  const { partnerName, userId } = useSpace()
+/** Deterministic hue from a string — gives each user a unique avatar color */
+function hashToHue(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return Math.abs(hash) % 360
+}
 
-  // Derive a display initial for the current user.
-  // We don't store our own name in the Zustand store (only partner),
-  // so we show a generic "Me" placeholder.
+export function HomeHeader() {
+  const { partnerName, partnerId } = useSpace()
+
   const myInitials = 'ME'
   const partnerInitials = partnerName ? getInitials(partnerName) : '?'
+  const partnerHue = partnerId ? hashToHue(partnerId) : 260
 
   return (
     <header className="px-6 pb-4 pt-safe">
@@ -30,37 +37,47 @@ export function HomeHeader() {
         <p className="text-sm font-medium text-neutral-400">
           {partnerName ?? 'Partner'}
         </p>
-        <h1 className="text-lg font-bold tracking-tight text-white">Ours</h1>
+        <h1 className="bg-gradient-to-r from-neutral-100 to-neutral-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
+          Ours
+        </h1>
         <button
           aria-label="Settings"
-          className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-neutral-300"
+          className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-neutral-300 active:scale-95"
         >
           <Settings className="h-5 w-5" />
         </button>
       </div>
 
       {/* Profile photo placeholders */}
-      <div className="flex items-end justify-center gap-6 pt-2">
+      <div className="flex items-end justify-center gap-8 pt-4">
         {/* Current user */}
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-800 ring-2 ring-neutral-700">
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-neutral-700 to-neutral-800 ring-2 ring-neutral-700/50 transition-transform hover:scale-105">
             <span className="text-sm font-semibold text-neutral-300">
               {myInitials}
             </span>
           </div>
-          <span className="text-[11px] text-neutral-500">You</span>
+          <span className="text-[11px] font-medium text-neutral-500">You</span>
         </div>
 
+        {/* Connecting line — subtle visual link between the two */}
+        <div className="mb-8 h-px w-8 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" />
+
         {/* Partner */}
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-800 ring-2 ring-neutral-700">
-            <span className="text-sm font-semibold text-neutral-300">
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="flex h-16 w-16 items-center justify-center rounded-full ring-2 ring-white/10 transition-transform hover:scale-105"
+            style={{
+              background: `linear-gradient(135deg, hsl(${partnerHue}, 40%, 25%), hsl(${partnerHue + 30}, 35%, 18%))`,
+            }}
+          >
+            <span className="text-sm font-semibold text-white/80">
               {partnerInitials}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <PresenceDot />
-            <span className="text-[11px] text-neutral-500">
+            <span className="text-[11px] font-medium text-neutral-500">
               {partnerName ?? 'Partner'}
             </span>
           </div>

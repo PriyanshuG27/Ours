@@ -7,14 +7,24 @@ function LivePresenceDot() {
   const others = useOthers()
   const partnerOnline = others[0]?.presence?.isOnline === true
 
+  if (partnerOnline) {
+    return (
+      <span
+        aria-label="Partner is online"
+        className="relative inline-flex h-2.5 w-2.5"
+      >
+        {/* Glow ring */}
+        <span className="absolute inline-flex h-full w-full animate-presence-pulse rounded-full bg-emerald-400 opacity-60" />
+        {/* Solid dot */}
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_2px_rgba(16,185,129,0.4)]" />
+      </span>
+    )
+  }
+
   return (
     <span
-      aria-label={partnerOnline ? 'Partner is online' : 'Partner is offline'}
-      className={`inline-block h-2.5 w-2.5 rounded-full ${
-        partnerOnline
-          ? 'bg-emerald-500 animate-pulse'
-          : 'bg-neutral-600'
-      }`}
+      aria-label="Partner is offline"
+      className="inline-block h-2.5 w-2.5 rounded-full bg-neutral-600"
     />
   )
 }
