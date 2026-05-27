@@ -9,6 +9,7 @@ export const client = createClient({
 
 type Presence = {
   isOnline: boolean;
+  pressingTearCardId?: string | null;
 };
 
 // ── Feature Storage Types ─────────────────────────────────────────────
@@ -70,7 +71,11 @@ type RoomEvent =
   | { type: "WATCH_PAUSED"; userId: string }
   | { type: "WATCH_COUNTDOWN"; count: number }
   | { type: "WATCH_SNACK_BREAK"; userId: string }
-  | { type: "WATCH_SNACK_BACK"; userId: string };
+  | { type: "WATCH_SNACK_BACK"; userId: string }
+  | { type: "BOARD_HUG"; cardId: string; userId: string }
+  | { type: "BOARD_TEAR_SYNC"; cardId: string; userId: string; isPressing: boolean }
+  | { type: "BOARD_CHANGED"; action: "add" | "update" | "delete"; moodTag?: string }
+  | { type: "BOARD_CHAT_MESSAGE"; cardId: string };
 
 // ── Room Context ──────────────────────────────────────────────────────
 

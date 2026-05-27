@@ -19,13 +19,30 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const { column, position, resolvedAt } = body;
+  const { 
+    column, 
+    position, 
+    resolvedAt, 
+    partnerAcknowledged, 
+    authorReady, 
+    partnerReady, 
+    encryptedAuthorPerspective, 
+    encryptedPartnerPerspective,
+    moodTag
+  } = body;
 
   const updates: any = {};
   if (column !== undefined) updates.column = column;
   if (position !== undefined) updates.position = position;
   if (resolvedAt !== undefined) updates.resolved_at = resolvedAt;
   else if (column === BoardColumn.RESOLVED) updates.resolved_at = new Date().toISOString();
+
+  if (partnerAcknowledged !== undefined) updates.partner_acknowledged = partnerAcknowledged;
+  if (authorReady !== undefined) updates.author_ready = authorReady;
+  if (partnerReady !== undefined) updates.partner_ready = partnerReady;
+  if (encryptedAuthorPerspective !== undefined) updates.encrypted_author_perspective = encryptedAuthorPerspective;
+  if (encryptedPartnerPerspective !== undefined) updates.encrypted_partner_perspective = encryptedPartnerPerspective;
+  if (moodTag !== undefined) updates.mood_tag = moodTag;
 
   // The RLS policy ensures users can only update cards in their space
   const { data: updatedCard, error } = await supabase

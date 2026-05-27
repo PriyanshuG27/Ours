@@ -27,7 +27,7 @@ type OutgoingMessage =
 
 // ── Model Singleton ───────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line
 let extractor: any = null;
 
 async function getExtractor() {

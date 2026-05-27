@@ -31,7 +31,7 @@ export async function POST(
     const task = completion.tasks;
 
     // 2. Penalties
-    let newPhotoProofs = task.photo_proofs_count;
+    let newPhotoProofs = task.photo_proofs_count || 0;
     if (newPhotoProofs > 0 && completion.photo_path) {
       newPhotoProofs -= 1;
     }
@@ -88,7 +88,7 @@ export async function POST(
         .from("feed_events")
         .update({
           metadata: {
-            ...feedEvent.metadata,
+            ...(typeof feedEvent.metadata === "object" && feedEvent.metadata ? feedEvent.metadata : {}),
             isFlagged: true
           }
         })

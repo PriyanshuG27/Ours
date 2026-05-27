@@ -102,7 +102,7 @@ export async function POST(request: Request) {
     .insert({
       space_id: spaceId,
       author_id: user.id,
-      type,
+      type: type as (typeof validTypes)[number],
       media_url: mediaUrl,
       encrypted_caption: caption,
     })

@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { encryptedText, column } = await req.json();
+  const { encryptedText, column, moodTag } = await req.json();
 
   if (!encryptedText) {
     return NextResponse.json({ error: "Missing encrypted text" }, { status: 400 });
@@ -103,6 +103,7 @@ export async function POST(req: Request) {
       encrypted_text: encryptedText,
       column: boardColumn,
       position: nextPosition,
+      mood_tag: moodTag || null,
     })
     .select()
     .single();

@@ -84,7 +84,7 @@ export async function POST(
       );
     }
 
-    let status = "pending";
+    let status: "pending" | "approved" | "denied" = "pending";
     let resolved_at = null;
     let resolved_by = null;
 
@@ -96,7 +96,7 @@ export async function POST(
       // Deduct freeze
       const { error: updateError } = await supabase
         .from("tasks")
-        .update({ streak_freezes: task.streak_freezes - 1 })
+        .update({ streak_freezes: (task.streak_freezes || 0) - 1 })
         .eq("id", taskId);
 
       if (updateError) throw updateError;

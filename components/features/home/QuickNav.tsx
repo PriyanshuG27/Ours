@@ -1,8 +1,10 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Rss, MonitorPlay, LayoutGrid, Focus, Flame } from 'lucide-react'
+import { Rss, MonitorPlay, LayoutGrid, Focus, Flame, BookOpen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useSpaceStore } from '@/store/space.store'
 
 interface NavCard {
   label: string
@@ -14,7 +16,7 @@ interface NavCard {
   description: string
 }
 
-const cards: NavCard[] = [
+const baseCards: NavCard[] = [
   {
     label: 'Feed',
     icon: Rss,
@@ -50,10 +52,33 @@ const cards: NavCard[] = [
     accent: 'bg-orange-500/10 text-orange-400',
     description: 'Daily habits',
   },
+  {
+    label: 'Rulebook',
+    icon: BookOpen,
+    href: '/rulebook',
+    accent: 'bg-rose-500/10 text-rose-400',
+    description: 'Rules & ledger',
+  },
 ]
 
 export function QuickNav() {
   const router = useRouter()
+  const isLoaded = useSpaceStore(state => state.isLoaded)
+  const [unsettledCount, setUnsettledCount] = useState(0)
+
+  useEffect(() => {
+    if (!isLoaded) return
+    fetch('/api/ledger?settled=false')
+      .then(res => res.json())
+      .then(data => {
+        if (data.count !== undefined && data.count !== null) {
+          setUnsettledCount(data.count)
+        } else if (data.entries) {
+          setUnsettledCount(data.entries.length)
+        }
+      })
+      .catch(console.error)
+  }, [isLoaded])
 
   return (
     <nav className="px-6 pt-8">
@@ -61,16 +86,23 @@ export function QuickNav() {
         Quick access
       </p>
       <div className="grid grid-cols-2 gap-3">
-        {cards.map((card, index) => (
+        {baseCards.map((card, index) => (
           <button
             key={card.href}
             onClick={() => router.push(card.href)}
-            className="group flex flex-col items-start gap-3 rounded-2xl border border-neutral-800/50 bg-neutral-900/40 p-4 text-left backdrop-blur-sm transition-all hover:border-neutral-700 hover:bg-neutral-800/50 active:scale-[0.97]"
+            className="relative group flex flex-col items-start gap-3 rounded-2xl border border-neutral-800/50 bg-neutral-900/40 p-4 text-left backdrop-blur-sm transition-all hover:border-neutral-700 hover:bg-neutral-800/50 active:scale-[0.97]"
             style={{ animationDelay: `${index * 80}ms` }}
           >
             <div className={`rounded-xl p-2.5 transition-transform group-hover:scale-110 ${card.accent}`}>
               <card.icon className="h-5 w-5" />
             </div>
+            
+            {card.href === '/rulebook' && unsettledCount > 0 && (
+              <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-lg animate-in zoom-in">
+                {unsettledCount}
+              </div>
+            )}
+
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium text-neutral-200 transition-colors group-hover:text-white">
                 {card.label}

@@ -143,7 +143,7 @@ export function StreakList() {
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold text-zinc-100 px-1">My Streaks</h2>
         {myTasks.length === 0 ? (
-          <p className="text-zinc-500 text-sm px-1">You haven't started any personal streaks yet.</p>
+          <p className="text-zinc-500 text-sm px-1">You haven&apos;t started any personal streaks yet.</p>
         ) : (
           myTasks.map((task) => (
             <TaskCard

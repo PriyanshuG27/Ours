@@ -330,7 +330,7 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
       {!canComplete && !isOwner && !task.is_coop && pendingSkip && (
         <div className="mt-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 animate-in fade-in">
           <p className="text-sm text-indigo-200 mb-3">
-            <span className="font-semibold">Skip requested:</span> "{pendingSkip.reason || "No reason provided"}"
+            <span className="font-semibold">Skip requested:</span> &ldquo;{pendingSkip.reason || "No reason provided"}&rdquo;
           </p>
           <div className="flex gap-2">
             <button

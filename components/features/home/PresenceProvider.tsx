@@ -3,6 +3,8 @@
 import { ReactNode } from 'react'
 import { RoomProvider } from '@/lib/liveblocks/config'
 import { useSpace } from '@/hooks/use-space'
+import { ClientSideSuspense } from '@liveblocks/react'
+import { GlobalBoardNotifier } from '../board/GlobalBoardNotifier'
 
 export function PresenceProvider({ children }: { children: ReactNode }) {
   const { spaceId, isLoaded } = useSpace()
@@ -19,7 +21,10 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
       id={spaceId}
       initialPresence={{ isOnline: true }}
     >
-      {children}
+      <ClientSideSuspense fallback={null}>
+        <GlobalBoardNotifier />
+        {children}
+      </ClientSideSuspense>
     </RoomProvider>
   )
 }

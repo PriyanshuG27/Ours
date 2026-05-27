@@ -151,7 +151,7 @@ export function QuestionOfDay() {
             {isSubmitting ? "Locking..." : "Lock Answer"}
           </button>
           <p className="text-[11px] text-zinc-500 text-center flex items-center justify-center gap-1 mt-1">
-            <Lock className="w-3 h-3" /> Blind reveal — {partnerName || "your partner"} can't see this until they answer.
+            <Lock className="w-3 h-3" /> Blind reveal — {partnerName || "your partner"} can&apos;t see this until they answer.
           </p>
         </div>
       )}

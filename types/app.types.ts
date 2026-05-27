@@ -123,6 +123,13 @@ export enum BoardColumn {
   RESOLVED = "resolved",
 }
 
+export enum BoardMoodTag {
+  URGENT = "urgent",
+  SAD = "sad",
+  NEUTRAL = "neutral",
+  CONFUSED = "confused",
+}
+
 export type BoardCard = {
   id: string;
   column: BoardColumn;
@@ -131,6 +138,23 @@ export type BoardCard = {
   position: number;
   resolved_at?: string;
   author_id: string;
+  partner_acknowledged: boolean;
+  author_ready: boolean;
+  partner_ready: boolean;
+  /** E2EE ciphertext */
+  encrypted_author_perspective?: string | null;
+  /** E2EE ciphertext */
+  encrypted_partner_perspective?: string | null;
+  mood_tag?: BoardMoodTag | null;
+};
+
+export type BoardCardMessage = {
+  id: string;
+  card_id: string;
+  sender_id: string;
+  encrypted_payload: string;
+  message_type: "text" | "voice" | "image" | "call_request";
+  created_at: string;
 };
 
 export enum BucketItemStatus {
