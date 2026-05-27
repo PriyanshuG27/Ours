@@ -72,7 +72,7 @@ export function PhotoUploader({ onSuccess }: PhotoUploaderProps) {
       const encryptedBytes = await encryptBinary(fileBytes)
       
       // Create a Blob from the ciphertext
-      const encryptedBlob = new Blob([encryptedBytes], { type: 'application/octet-stream' })
+      const encryptedBlob = new Blob([new Uint8Array(encryptedBytes)], { type: 'application/octet-stream' })
       
       formData.append('file', encryptedBlob)
       formData.append('type', 'photo')

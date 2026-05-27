@@ -19,7 +19,8 @@ type UserMeta = {
 };
 
 type RoomEvent = {
-  // stub
+  type: "NUDGE";
+  taskId: string;
 };
 
 export const {
@@ -30,4 +31,6 @@ export const {
   useOthers,
   useStorage,
   useMutation,
+  useEventListener,
+  useBroadcastEvent,
 } = createRoomContext<Presence, Storage, UserMeta, RoomEvent>(client);

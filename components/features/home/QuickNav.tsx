@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Rss, MonitorPlay, LayoutGrid, Focus } from 'lucide-react'
+import { Rss, MonitorPlay, LayoutGrid, Focus, Flame } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface NavCard {
@@ -42,6 +42,13 @@ const cards: NavCard[] = [
     href: '/focus',
     accent: 'bg-emerald-500/10 text-emerald-400',
     description: 'Study together',
+  },
+  {
+    label: 'Streaks',
+    icon: Flame,
+    href: '/streaks',
+    accent: 'bg-orange-500/10 text-orange-400',
+    description: 'Daily habits',
   },
 ]
 

@@ -32,7 +32,7 @@ export function EncryptedImage({ src, alt, className }: EncryptedImageProps) {
         const decryptedBytes = await decryptBinary(encryptedBytes)
         
         // 3. Create a blob and an object URL
-        const blob = new Blob([decryptedBytes], { type: 'image/webp' })
+        const blob = new Blob([new Uint8Array(decryptedBytes)], { type: 'image/webp' })
         const url = URL.createObjectURL(blob)
         
         if (!cancelled) {

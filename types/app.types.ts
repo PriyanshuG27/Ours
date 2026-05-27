@@ -51,52 +51,70 @@ export type LedgerEntry = {
   description: string;
 };
 
-export enum SkipStatus {
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-}
+export type SkipStatus = "pending" | "approved" | "denied";
 
 export type Task = {
   id: string;
   created_at: string;
-  /** E2EE ciphertext */
+  space_id: string;
+  owner_id: string;
   title: string;
-  assigned_to: string;
-  is_completed: boolean;
+  description: string | null;
+  streak_count: number;
+  last_completed_at: string | null;
+  is_active: boolean;
+  is_coop: boolean;
+  shared_streak_count: number;
+  partner_streak_count: number;
+  photo_proofs_count: number;
+  streak_freezes: number;
+  completions?: TaskCompletion[];
+};
+
+export type TaskCompletion = {
+  id: string;
+  task_id: string;
+  completed_by: string;
+  completed_at: string;
+  mood_tag: MoodTag;
+  streak_at_completion: number;
+  photo_path?: string | null;
+  is_flagged?: boolean;
 };
 
 export type SkipRequest = {
   id: string;
+  created_at: string;
   task_id: string;
-  requested_by: string;
+  requester_id: string;
+  reason: string | null;
   status: SkipStatus;
-  /** E2EE ciphertext */
-  reason: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
 };
 
 export type EnergyLog = {
   id: string;
-  created_at: string;
+  space_id: string;
   user_id: string;
-  level: number;
-  /** E2EE ciphertext */
-  note: string;
+  date: string;
+  morning_level: number | null;
+  night_level: number | null;
 };
 
 export type Question = {
   id: string;
-  /** E2EE ciphertext */
-  text: string;
-  asked_by: string;
+  question_text: string;
+  display_order: number;
 };
 
-export type QAResponse = {
+export type QuestionResponse = {
   id: string;
-  question_id: string;
+  space_id: string;
   user_id: string;
-  /** E2EE ciphertext */
-  answer: string;
+  question_id: string;
+  date: string;
+  encrypted_answer: string;
 };
 
 export enum BoardColumn {

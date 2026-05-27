@@ -55,6 +55,9 @@ export function FeedItem({ event }: FeedItemProps) {
   const { decrypt } = useE2EEKey()
   const [isPinned, setIsPinned] = useState(event.is_pinned)
   const [pinLoading, setPinLoading] = useState(false)
+  const [isFlagging, setIsFlagging] = useState(false)
+  const [isFlagged, setIsFlagged] = useState(event.metadata?.isFlagged === true)
+  const [showFlagConfirm, setShowFlagConfirm] = useState(false)
   const [decryptedCaption, setDecryptedCaption] = useState<string | null>(null)
 
   const authorLabel = getAuthorLabel(event.author_id, userId, partnerName)
@@ -103,15 +106,44 @@ export function FeedItem({ event }: FeedItemProps) {
     }
   }
 
+  async function handleFlag() {
+    const completionId = getMeta(event.metadata, 'completionId');
+    if (!completionId) return;
+    
+    setIsFlagging(true);
+    try {
+      const res = await fetch(`/api/tasks/completions/${completionId}/flag`, { method: "POST" });
+      if (res.ok) {
+        setIsFlagged(true);
+      } else {
+        alert("Failed to flag completion");
+      }
+    } finally {
+      setIsFlagging(false);
+    }
+  }
+
   /** Display caption: decrypted if available, otherwise raw or null */
   const displayCaption = event.encrypted_caption
     ? (decryptedCaption ?? '…')
     : null
+    
+  const completionId = getMeta(event.metadata, 'completionId');
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-neutral-800/50 bg-neutral-900/40 backdrop-blur-sm">
-      {/* Photo / Capture — media_url is a signed URL from the API */}
-      {event.media_url && (event.type === 'photo' || event.type === 'capture') && (
+    <>
+    <article className="overflow-hidden rounded-2xl border border-neutral-800/50 bg-neutral-900/40 backdrop-blur-sm relative">
+      {/* Flagged Overlay */}
+      {isFlagged && (
+        <div className="absolute inset-0 z-10 bg-red-900/20 backdrop-blur-[2px] pointer-events-none border-2 border-red-500/50 rounded-2xl flex items-center justify-center">
+          <div className="bg-red-500/90 text-white font-bold px-4 py-2 rounded-full rotate-12 shadow-xl border border-red-400">
+            FLAGGED 🚩
+          </div>
+        </div>
+      )}
+
+      {/* Photo / Capture / Task Done — media_url is a signed URL from the API */}
+      {event.media_url && (event.type === 'photo' || event.type === 'capture' || event.type === 'task_done') && (
         <EncryptedImage
           src={event.media_url}
           alt={displayCaption ?? 'Photo'}
@@ -129,15 +161,20 @@ export function FeedItem({ event }: FeedItemProps) {
         )}
 
         {event.type === 'task_done' && (
-          <div className="flex items-center gap-2">
-            <span className="text-emerald-400">✓</span>
-            <span className="text-sm text-neutral-200">
-              {displayCaption ?? 'Task completed'}
-            </span>
-            {getMeta(event.metadata, 'mood') && (
-              <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] font-medium text-neutral-400">
-                {getMeta(event.metadata, 'mood')}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-emerald-400">✓</span>
+              <span className="text-sm font-medium text-neutral-200">
+                {getMeta(event.metadata, 'taskTitle') || 'Task completed'}
               </span>
+              {getMeta(event.metadata, 'streakCount') && (
+                <span className="rounded-full bg-orange-500/10 text-orange-500 px-2 py-0.5 text-[10px] font-bold">
+                  🔥 {getMeta(event.metadata, 'streakCount')}
+                </span>
+              )}
+            </div>
+            {displayCaption && (
+              <p className="text-sm text-neutral-300">{displayCaption}</p>
             )}
           </div>
         )}
@@ -187,23 +224,67 @@ export function FeedItem({ event }: FeedItemProps) {
             <span className="text-xs text-neutral-500">{timeAgo}</span>
           </div>
 
-          <button
-            onClick={togglePin}
-            disabled={pinLoading}
-            aria-label={isPinned ? 'Unpin from Memory Wall' : 'Pin to Memory Wall'}
-            className={`rounded-lg p-1.5 transition-colors ${
-              isPinned
-                ? 'text-amber-400 hover:text-amber-300'
-                : 'text-neutral-600 hover:text-neutral-400'
-            } disabled:opacity-50`}
-          >
-            <Bookmark
-              className="h-4 w-4"
-              fill={isPinned ? 'currentColor' : 'none'}
-            />
-          </button>
+          <div className="flex items-center gap-1">
+            {event.type === 'task_done' && event.media_url && event.author_id !== userId && !isFlagged && completionId && (
+              <button
+                onClick={() => setShowFlagConfirm(true)}
+                disabled={isFlagging}
+                title="Flag this photo as inaccurate"
+                className="rounded-lg p-1.5 text-neutral-600 hover:text-red-400 transition-colors disabled:opacity-50"
+              >
+                <span className="text-sm">🚩</span>
+              </button>
+            )}
+            <button
+              onClick={togglePin}
+              disabled={pinLoading}
+              aria-label={isPinned ? 'Unpin from Memory Wall' : 'Pin to Memory Wall'}
+              className={`rounded-lg p-1.5 transition-colors ${
+                isPinned
+                  ? 'text-amber-400 hover:text-amber-300'
+                  : 'text-neutral-600 hover:text-neutral-400'
+              } disabled:opacity-50`}
+            >
+              <Bookmark
+                className="h-4 w-4"
+                fill={isPinned ? 'currentColor' : 'none'}
+              />
+            </button>
+          </div>
         </div>
       </div>
     </article>
+    
+    {/* Custom Confirmation Modal */}
+    {showFlagConfirm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in p-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-sm shadow-xl flex flex-col gap-4 animate-in zoom-in-95">
+          <h3 className="text-xl font-semibold text-zinc-100 flex items-center gap-2">
+             <span className="text-red-500">🚩</span> Flag Photo
+          </h3>
+          <p className="text-sm text-zinc-400">
+             Are you sure this photo is inaccurate? Flagging will deduct a photo proof and can eventually reset their streak.
+          </p>
+          <div className="flex gap-3 mt-2">
+            <button
+              onClick={() => setShowFlagConfirm(false)}
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setShowFlagConfirm(false);
+                handleFlag();
+              }}
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-500 transition-colors"
+            >
+              Yes, Flag It
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

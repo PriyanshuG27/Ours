@@ -8,6 +8,7 @@ import { encryptPayload, decryptPayload, initSodium } from '@/lib/crypto/e2ee'
 import { saveKey } from '@/hooks/use-e2ee-key'
 import { supabase } from '@/lib/supabase/client'
 import { AlertTriangle, Lock, Loader2 } from 'lucide-react'
+import { NudgeListener } from '@/components/features/streaks/NudgeListener'
 
 const E2EE_TEST_PLAINTEXT = 'ours-e2ee-verification-token'
 
@@ -151,6 +152,7 @@ export function SpaceShell({ children }: { children: ReactNode }) {
   // ---- KEY IS AVAILABLE — RENDER NORMALLY ----
   return (
     <PresenceProvider>
+      <NudgeListener />
       {children}
     </PresenceProvider>
   )
