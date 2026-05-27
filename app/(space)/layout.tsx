@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { SpaceShell } from "@/components/shared/SpaceShell";
 
 export default async function SpaceLayout({
   children,
@@ -25,5 +26,5 @@ export default async function SpaceLayout({
     redirect("/setup");
   }
 
-  return <>{children}</>;
+  return <SpaceShell>{children}</SpaceShell>;
 }

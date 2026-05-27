@@ -58,11 +58,9 @@ export function useSpace() {
         const pId = users[partnerIndex] ?? null
         const pName = userNames[partnerIndex] ?? null
 
-        if (pId && pName) {
-          setSpace(space.id as string, user.id, pId, pName)
-        } else {
-          setLoaded()
-        }
+        // Always set spaceId/userId — even if partner hasn't joined yet.
+        // This ensures useE2EEKey can load the key for this space.
+        setSpace(space.id as string, user.id, pId ?? '', pName ?? '')
       } catch (err) {
         console.error('[use-space] load error:', err)
         if (!cancelled) {

@@ -6,6 +6,8 @@ export type Space = {
   user_names: string[];
   space_name: string | null;
   is_active: boolean;
+  /** E2EE test payload — used to verify key correctness on new devices */
+  encrypted_test_payload: string | null;
 };
 
 export type FeedEventType =
@@ -19,11 +21,15 @@ export type FeedEventType =
 
 export type FeedEvent = {
   id: string;
-  type: FeedEventType;
   created_at: string;
-  user_id: string;
-  /** E2EE ciphertext */
-  content: string;
+  space_id: string;
+  author_id: string;
+  type: FeedEventType;
+  media_url: string | null;
+  /** TODO: Phase 4 — E2EE ciphertext */
+  encrypted_caption: string | null;
+  metadata: Record<string, unknown>;
+  is_pinned: boolean;
 };
 
 export type Rule = {
