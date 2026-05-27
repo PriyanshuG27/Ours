@@ -35,29 +35,40 @@ export async function GET(request: Request) {
       );
     }
 
-    // 1. Get total questions count
-    const { count, error: countError } = await supabase
-      .from("questions")
-      .select("*", { count: "exact", head: true });
+    const today = new Date().toISOString().split("T")[0];
 
-    if (countError || count === null || count === 0) {
-      return NextResponse.json(
-        { error: "Failed to load questions" },
-        { status: 500 }
-      );
-    }
-
-    // 2. Select today's question
-    const dayOfYear = getDayOfYear();
-    const displayOrder = (dayOfYear % count) + 1; // Assuming 1-indexed display_order
-
-    const { data: question, error: qError } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("display_order", displayOrder)
+    // 1. Try to get dynamic question
+    let question = null;
+    const { data: dynamicQuestion } = await supabase
+      .from("dynamic_questions")
+      .select("id, question_text")
+      .eq("space_id", spaceData.id)
+      .eq("date", today)
       .single();
 
-    if (qError || !question) {
+    if (dynamicQuestion) {
+      question = dynamicQuestion;
+    } else {
+      // 2. Fallback to static question
+      const { count } = await supabase
+        .from("questions")
+        .select("*", { count: "exact", head: true });
+
+      if (count && count > 0) {
+        const dayOfYear = getDayOfYear();
+        const displayOrder = (dayOfYear % count) + 1;
+
+        const { data: fallbackQuestion } = await supabase
+          .from("questions")
+          .select("id, question_text")
+          .eq("display_order", displayOrder)
+          .single();
+
+        question = fallbackQuestion;
+      }
+    }
+
+    if (!question) {
       return NextResponse.json(
         { error: "Question not found" },
         { status: 404 }
@@ -65,12 +76,10 @@ export async function GET(request: Request) {
     }
 
     // 3. Get responses for today
-    const today = new Date().toISOString().split("T")[0];
     const { data: responses, error: rError } = await supabase
       .from("question_responses")
       .select("*")
       .eq("space_id", spaceData.id)
-      .eq("question_id", question.id)
       .eq("date", today);
 
     if (rError) {
