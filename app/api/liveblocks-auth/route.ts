@@ -38,7 +38,9 @@ export async function POST() {
     },
   });
 
-  session.allow(spaceId, session.FULL_ACCESS);
+  // Wildcard: authorize base room (presence) and all feature-suffixed rooms
+  // e.g. spaceId, spaceId-tiebreaker, spaceId-focus, spaceId-watch
+  session.allow(`${spaceId}*`, session.FULL_ACCESS);
 
   const { status, body } = await session.authorize();
 

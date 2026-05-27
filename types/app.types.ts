@@ -118,18 +118,19 @@ export type QuestionResponse = {
 };
 
 export enum BoardColumn {
-  TODO = "todo",
-  IN_PROGRESS = "in_progress",
-  DONE = "done",
+  ON_MY_MIND = "on_my_mind",
+  LETS_TALK = "lets_talk",
+  RESOLVED = "resolved",
 }
 
 export type BoardCard = {
   id: string;
   column: BoardColumn;
   /** E2EE ciphertext */
-  title: string;
-  /** E2EE ciphertext */
-  content: string;
+  encrypted_text: string;
+  position: number;
+  resolved_at?: string;
+  author_id: string;
 };
 
 export enum BucketItemStatus {
