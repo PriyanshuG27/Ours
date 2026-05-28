@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+import { Database } from "@/types/database.types";
+
 export async function PATCH(
   request: Request,
   { params }: { params: { itemId: string; todoId: string } }
@@ -12,14 +14,18 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as { is_completed?: boolean };
-  if (body.is_completed === undefined) {
-    return NextResponse.json({ error: "Missing is_completed" }, { status: 400 });
+  const body = (await request.json()) as { is_completed?: boolean; assigned_to?: string | null };
+  if (body.is_completed === undefined && body.assigned_to === undefined) {
+    return NextResponse.json({ error: "Missing update fields" }, { status: 400 });
   }
+
+  const payload: Record<string, any> = {};
+  if (body.is_completed !== undefined) payload.is_completed = body.is_completed;
+  if (body.assigned_to !== undefined) payload.assigned_to = body.assigned_to;
 
   const { error: updateError } = await supabase
     .from("bucket_todos")
-    .update({ is_completed: body.is_completed })
+    .update(payload as Database["public"]["Tables"]["bucket_todos"]["Update"])
     .eq("id", params.todoId)
     .eq("bucket_item_id", params.itemId);
 

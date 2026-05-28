@@ -59,39 +59,48 @@ export function FeedItem({ event }: FeedItemProps) {
   const [isFlagged, setIsFlagged] = useState(event.metadata?.isFlagged === true)
   const [showFlagConfirm, setShowFlagConfirm] = useState(false)
   const [decryptedCaption, setDecryptedCaption] = useState<string | null>(null)
+  const [decryptedTaskTitle, setDecryptedTaskTitle] = useState<string | null>(null)
 
   const authorLabel = getAuthorLabel(event.author_id, userId, partnerName)
   const timeAgo = relativeTime(event.created_at)
 
   // Decrypt the caption when event changes
   useEffect(() => {
-    if (!event.encrypted_caption) {
-      setDecryptedCaption(null)
-      return
-    }
-
     let cancelled = false
 
-    async function decryptCaption() {
-      try {
-        const plaintext = await decrypt(event.encrypted_caption as string)
-        if (!cancelled) {
-          setDecryptedCaption(plaintext)
+    const runDecryption = async () => {
+      // Caption
+      if (event.encrypted_caption) {
+        try {
+          const dec = await decrypt(event.encrypted_caption)
+          if (!cancelled) setDecryptedCaption(dec)
+        } catch (e) {
+          if (!cancelled) setDecryptedCaption('[unable to decrypt]')
         }
-      } catch {
-        // Decryption failed — show fallback
-        if (!cancelled) {
-          setDecryptedCaption('[encrypted]')
+      } else {
+        if (!cancelled) setDecryptedCaption(null)
+      }
+
+      // Task Title (from metadata)
+      const metaTitle = getMeta(event.metadata, 'taskTitle') || getMeta(event.metadata, 'taskLabel')
+      if (metaTitle) {
+        try {
+          const dec = await decrypt(metaTitle)
+          if (!cancelled) setDecryptedTaskTitle(dec)
+        } catch (e) {
+          if (!cancelled) setDecryptedTaskTitle('[unable to decrypt]')
         }
+      } else {
+        if (!cancelled) setDecryptedTaskTitle(null)
       }
     }
 
-    decryptCaption()
+    runDecryption()
 
     return () => {
       cancelled = true
     }
-  }, [event.encrypted_caption, decrypt])
+  }, [event.encrypted_caption, event.metadata, decrypt])
 
   async function togglePin() {
     setPinLoading(true)
@@ -154,10 +163,19 @@ export function FeedItem({ event }: FeedItemProps) {
       {/* Content area */}
       <div className="p-4">
         {/* Type-specific content */}
-        {event.type === 'note' && (
+        {event.type === 'note' && !getMeta(event.metadata, 'isFreeze') && (
           <p className="text-sm leading-relaxed text-neutral-200">
             {displayCaption}
           </p>
+        )}
+
+        {event.type === 'note' && getMeta(event.metadata, 'isFreeze') && (
+          <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+            <span className="text-xl">🧊</span>
+            <span className="text-sm font-medium text-blue-200">
+              Used a streak freeze for <span className="font-bold text-white">{decryptedTaskTitle || 'a task'}</span>
+            </span>
+          </div>
         )}
 
         {event.type === 'task_done' && (
@@ -165,7 +183,7 @@ export function FeedItem({ event }: FeedItemProps) {
             <div className="flex items-center gap-2">
               <span className="text-emerald-400">✓</span>
               <span className="text-sm font-medium text-neutral-200">
-                {getMeta(event.metadata, 'taskTitle') || 'Task completed'}
+                {decryptedTaskTitle || 'Task completed'}
               </span>
               {getMeta(event.metadata, 'streakCount') && (
                 <span className="rounded-full bg-orange-500/10 text-orange-500 px-2 py-0.5 text-[10px] font-bold">

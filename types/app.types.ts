@@ -30,6 +30,7 @@ export type FeedEvent = {
   encrypted_caption: string | null;
   metadata: Record<string, unknown>;
   is_pinned: boolean;
+  delete_requested_by?: string | null;
 };
 
 export type Rule = {
@@ -168,6 +169,7 @@ export type BucketCompletion = {
   photo_url: string;
   /** E2EE ciphertext */
   encrypted_note: string;
+  vibe_rating?: number;
 };
 
 export type BucketItem = {
@@ -176,12 +178,19 @@ export type BucketItem = {
   creator_id: string;
   title: string;
   /** E2EE ciphertext */
-  encrypted_why: string;
+  encrypted_why: string | null;
   status: BucketItemStatus;
   completion_a: BucketCompletion | null;
   completion_b: BucketCompletion | null;
   completed_at: string | null;
   created_at: string;
+  target_date: string | null;
+  budget_cents: number | null;
+  saved_cents: number;
+  category: string | null;
+  hype_votes: string[];
+  vibe_rating_a: number | null;
+  vibe_rating_b: number | null;
 };
 
 export type DictionaryEntry = {

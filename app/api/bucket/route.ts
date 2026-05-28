@@ -70,6 +70,7 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     encryptedTitle?: string;
     encryptedWhy?: string;
+    category?: string | null;
   };
 
   if (!body.encryptedTitle || !body.encryptedWhy) {
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
       creator_id: user.id,
       title: body.encryptedTitle,
       encrypted_why: body.encryptedWhy,
+      category: body.category || null,
       status: "someday" as const,
     })
     .select("*")

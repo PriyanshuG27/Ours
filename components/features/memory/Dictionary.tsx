@@ -5,6 +5,7 @@ import { Search, Plus, Trash2, Shuffle, X, BookOpen } from 'lucide-react'
 import { useSpace } from '@/hooks/use-space'
 import { useE2EEKey } from '@/hooks/use-e2ee-key'
 import type { DictionaryEntry } from '@/types/app.types'
+import { supabase } from '@/lib/supabase/client'
 
 interface DecryptedEntry {
   id: string
@@ -16,7 +17,7 @@ interface DecryptedEntry {
 }
 
 export function Dictionary() {
-  const { userId, partnerName } = useSpace()
+  const { spaceId, userId, partnerName } = useSpace()
   const { encrypt, decrypt, key, isLoaded: keyLoaded, needsKeyEntry } = useE2EEKey()
 
   const [rawEntries, setRawEntries] = useState<DictionaryEntry[]>([])
@@ -53,20 +54,20 @@ export function Dictionary() {
           try {
             word = await decrypt(entry.encrypted_word)
           } catch {
-            word = '[encrypted]'
+            word = '[unable to decrypt]'
           }
 
           try {
             meaning = await decrypt(entry.encrypted_meaning)
           } catch {
-            meaning = '[encrypted]'
+            meaning = '[unable to decrypt]'
           }
 
           if (entry.encrypted_origin) {
             try {
               origin = await decrypt(entry.encrypted_origin)
             } catch {
-              origin = '[encrypted]'
+              origin = '[unable to decrypt]'
             }
           }
 
@@ -93,7 +94,29 @@ export function Dictionary() {
     if (key && userId) fetchEntries()
     // If key is loaded but missing, stop showing skeleton
     if (keyLoaded && !key) setLoading(false)
-  }, [key, keyLoaded, userId, fetchEntries])
+
+    if (!key || !userId || !spaceId) return
+
+    const channel = supabase
+      .channel(`dictionary-${spaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dictionary_entries',
+          filter: `space_id=eq.${spaceId}`,
+        },
+        () => {
+          fetchEntries()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [key, keyLoaded, userId, spaceId, fetchEntries])
 
   // Client-side sort + filter
   const filtered = useMemo(() => {

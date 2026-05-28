@@ -529,7 +529,7 @@ export function RulebookView() {
             </div>
             <p className="text-xs text-neutral-400 mb-2">Most frequently broken rule ({highestChargeCount} times):</p>
             <p className="text-sm text-neutral-200 font-medium italic bg-neutral-950/50 p-3 rounded-lg border border-amber-500/10">
-              "{mostBrokenRuleText}"
+              &quot;{mostBrokenRuleText}&quot;
             </p>
           </div>
 

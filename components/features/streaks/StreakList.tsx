@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { Task, SkipRequest } from "@/types/app.types";
 import { TaskCard } from "./TaskCard";
+import { useE2EEKey } from "@/hooks/use-e2ee-key";
 import { useSpaceStore } from "@/store/space.store";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 
 export function StreakList() {
   const router = useRouter();
+  const { encrypt } = useE2EEKey();
   const { userId, partnerName } = useSpaceStore();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [skipRequests, setSkipRequests] = useState<SkipRequest[]>([]);
@@ -62,10 +64,11 @@ export function StreakList() {
 
     setIsCreating(true);
     try {
+      const encryptedTitle = await encrypt(newTaskTitle.trim());
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTaskTitle, isCoop }),
+        body: JSON.stringify({ title: encryptedTitle, isCoop }),
       });
       if (res.ok) {
         setNewTaskTitle("");

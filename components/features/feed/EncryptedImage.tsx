@@ -8,13 +8,14 @@ interface EncryptedImageProps {
   src: string
   alt?: string
   className?: string
+  onClick?: () => void
 }
 
 // Global cache to prevent double-fetching and double-decrypting, 
 // and to fix issues where signed URLs expire before the zoomed overlay is opened.
 const decryptedCache = new Map<string, string>()
 
-export function EncryptedImage({ src, alt, className }: EncryptedImageProps) {
+export function EncryptedImage({ src, alt, className, onClick }: EncryptedImageProps) {
   const { decryptBinary } = useE2EEKey()
   const [objectUrl, setObjectUrl] = useState<string | null>(decryptedCache.get(src) ?? null)
   const [error, setError] = useState(false)
@@ -79,5 +80,5 @@ export function EncryptedImage({ src, alt, className }: EncryptedImageProps) {
     )
   }
 
-  return <img src={objectUrl} alt={alt ?? 'Encrypted Image'} className={className} loading="lazy" />
+  return <img src={objectUrl} alt={alt ?? 'Encrypted Image'} className={className} loading="lazy" onClick={onClick} />
 }

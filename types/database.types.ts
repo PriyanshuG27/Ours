@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -138,44 +138,158 @@ export type Database = {
       }
       bucket_items: {
         Row: {
+          budget_cents: number | null
+          category: string | null
           completed_at: string | null
           completion_a: Json | null
           completion_b: Json | null
           created_at: string
           creator_id: string
           encrypted_why: string
+          hype_votes: Json
           id: string
+          saved_cents: number
           space_id: string
           status: Database["public"]["Enums"]["bucket_status_enum"]
+          target_date: string | null
           title: string
+          vibe_rating_a: number | null
+          vibe_rating_b: number | null
         }
         Insert: {
+          budget_cents?: number | null
+          category?: string | null
           completed_at?: string | null
           completion_a?: Json | null
           completion_b?: Json | null
           created_at?: string
           creator_id: string
           encrypted_why: string
+          hype_votes?: Json
           id?: string
+          saved_cents?: number
           space_id: string
           status?: Database["public"]["Enums"]["bucket_status_enum"]
+          target_date?: string | null
           title: string
+          vibe_rating_a?: number | null
+          vibe_rating_b?: number | null
         }
         Update: {
+          budget_cents?: number | null
+          category?: string | null
           completed_at?: string | null
           completion_a?: Json | null
           completion_b?: Json | null
           created_at?: string
           creator_id?: string
           encrypted_why?: string
+          hype_votes?: Json
           id?: string
+          saved_cents?: number
           space_id?: string
           status?: Database["public"]["Enums"]["bucket_status_enum"]
+          target_date?: string | null
           title?: string
+          vibe_rating_a?: number | null
+          vibe_rating_b?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "bucket_items_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bucket_media: {
+        Row: {
+          bucket_item_id: string
+          created_at: string
+          id: string
+          media_type: string
+          space_id: string
+          url_or_content: string
+          user_id: string
+        }
+        Insert: {
+          bucket_item_id: string
+          created_at?: string
+          id?: string
+          media_type: string
+          space_id: string
+          url_or_content: string
+          user_id: string
+        }
+        Update: {
+          bucket_item_id?: string
+          created_at?: string
+          id?: string
+          media_type?: string
+          space_id?: string
+          url_or_content?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bucket_media_bucket_item_id_fkey"
+            columns: ["bucket_item_id"]
+            isOneToOne: false
+            referencedRelation: "bucket_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bucket_media_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bucket_todos: {
+        Row: {
+          assigned_to: string | null
+          bucket_item_id: string
+          created_at: string
+          creator_id: string
+          encrypted_text: string
+          id: string
+          is_completed: boolean
+          space_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          bucket_item_id: string
+          created_at?: string
+          creator_id: string
+          encrypted_text: string
+          id?: string
+          is_completed?: boolean
+          space_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          bucket_item_id?: string
+          created_at?: string
+          creator_id?: string
+          encrypted_text?: string
+          id?: string
+          is_completed?: boolean
+          space_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bucket_todos_bucket_item_id_fkey"
+            columns: ["bucket_item_id"]
+            isOneToOne: false
+            referencedRelation: "bucket_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bucket_todos_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
@@ -190,8 +304,10 @@ export type Database = {
           id: string
           initiator_id: string
           is_paired: boolean
+          partner_joined: boolean
           photo_a_url: string | null
           photo_b_url: string | null
+          shutter_clicked_at: string | null
           space_id: string
         }
         Insert: {
@@ -200,8 +316,10 @@ export type Database = {
           id?: string
           initiator_id: string
           is_paired?: boolean
+          partner_joined?: boolean
           photo_a_url?: string | null
           photo_b_url?: string | null
+          shutter_clicked_at?: string | null
           space_id: string
         }
         Update: {
@@ -210,42 +328,15 @@ export type Database = {
           id?: string
           initiator_id?: string
           is_paired?: boolean
+          partner_joined?: boolean
           photo_a_url?: string | null
           photo_b_url?: string | null
+          shutter_clicked_at?: string | null
           space_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "capture_events_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      dynamic_questions: {
-        Row: {
-          date: string
-          id: string
-          question_text: string
-          space_id: string
-        }
-        Insert: {
-          date?: string
-          id?: string
-          question_text: string
-          space_id: string
-        }
-        Update: {
-          date?: string
-          id?: string
-          question_text?: string
-          space_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "dynamic_questions_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
@@ -284,6 +375,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "dictionary_entries_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dynamic_questions: {
+        Row: {
+          date: string
+          id: string
+          question_text: string
+          space_id: string
+        }
+        Insert: {
+          date?: string
+          id?: string
+          question_text: string
+          space_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          question_text?: string
+          space_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dynamic_questions_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
@@ -330,6 +450,7 @@ export type Database = {
         Row: {
           author_id: string
           created_at: string | null
+          delete_requested_by: string | null
           encrypted_caption: string | null
           id: string
           is_pinned: boolean | null
@@ -341,6 +462,7 @@ export type Database = {
         Insert: {
           author_id: string
           created_at?: string | null
+          delete_requested_by?: string | null
           encrypted_caption?: string | null
           id?: string
           is_pinned?: boolean | null
@@ -352,6 +474,7 @@ export type Database = {
         Update: {
           author_id?: string
           created_at?: string | null
+          delete_requested_by?: string | null
           encrypted_caption?: string | null
           id?: string
           is_pinned?: boolean | null
@@ -714,8 +837,8 @@ export type Database = {
       }
     }
     Enums: {
-      bucket_status_enum: "someday" | "planning" | "done"
       board_column_enum: "on_my_mind" | "lets_talk" | "resolved"
+      bucket_status_enum: "someday" | "planning" | "done"
       feed_event_type:
         | "photo"
         | "note"
@@ -858,6 +981,7 @@ export const Constants = {
   public: {
     Enums: {
       board_column_enum: ["on_my_mind", "lets_talk", "resolved"],
+      bucket_status_enum: ["someday", "planning", "done"],
       feed_event_type: [
         "photo",
         "note",

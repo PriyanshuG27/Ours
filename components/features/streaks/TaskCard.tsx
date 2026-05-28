@@ -5,6 +5,7 @@ import { Task, SkipRequest, MoodTag, TaskCompletion } from "@/types/app.types";
 import { CompletionModal } from "./CompletionModal";
 import { useBroadcastEvent } from "@/lib/liveblocks/config";
 import { Snowflake, BellRing } from "lucide-react";
+import { useE2EEKey } from "@/hooks/use-e2ee-key";
 
 type TaskCardProps = {
   task: Task;
@@ -21,7 +22,48 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
   const [skipReason, setSkipReason] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { encrypt, decrypt } = useE2EEKey();
+  const [decryptedTitle, setDecryptedTitle] = useState(task.title);
+  const [decryptedDescription, setDecryptedDescription] = useState(task.description);
+  const [decryptedSkipReason, setDecryptedSkipReason] = useState<string | null>(null);
+
   const pendingSkip = skipRequests.find((r) => r.status === "pending" && r.task_id === task.id);
+
+  useEffect(() => {
+    let active = true;
+    const loadDecrypted = async () => {
+      try {
+        const title = await decrypt(task.title);
+        if (active) setDecryptedTitle(title);
+      } catch (e) {
+        if (active) setDecryptedTitle('[unable to decrypt]');
+      }
+
+      if (task.description) {
+        try {
+          const desc = await decrypt(task.description);
+          if (active) setDecryptedDescription(desc);
+        } catch (e) {
+          if (active) setDecryptedDescription('[unable to decrypt]');
+        }
+      } else {
+        if (active) setDecryptedDescription(null);
+      }
+      
+      if (pendingSkip?.reason) {
+        try {
+          const reason = await decrypt(pendingSkip.reason);
+          if (active) setDecryptedSkipReason(reason);
+        } catch (e) {
+          if (active) setDecryptedSkipReason('[unable to decrypt]');
+        }
+      } else {
+        if (active) setDecryptedSkipReason(null);
+      }
+    };
+    loadDecrypted();
+    return () => { active = false; };
+  }, [task.title, task.description, pendingSkip?.reason, decrypt]);
 
   // Optimistic states
   const [optimisticOwnerStreak, setOptimisticOwnerStreak] = useState(task.streak_count);
@@ -116,10 +158,11 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
     if (!useFreeze && !skipReason.trim()) return;
     setLoading(true);
     try {
+      const encryptedReason = !useFreeze && skipReason.trim() ? await encrypt(skipReason.trim()) : null;
       const res = await fetch(`/api/tasks/${task.id}/skip`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: skipReason, useFreeze }),
+        body: JSON.stringify({ reason: encryptedReason, useFreeze }),
       });
       if (res.ok) {
         setIsSkipping(false);
@@ -248,9 +291,9 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4">
       <div className="flex justify-between items-start gap-4">
         <div>
-          <h3 className="text-lg font-medium text-zinc-100">{task.title}</h3>
-          {task.description && (
-            <p className="text-sm text-zinc-400 mt-1">{task.description}</p>
+          <h3 className="text-lg font-medium text-zinc-100">{decryptedTitle}</h3>
+          {decryptedDescription && (
+            <p className="text-sm text-zinc-400 mt-1">{decryptedDescription}</p>
           )}
           {renderMoodMeter()}
         </div>
@@ -330,7 +373,7 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
       {!canComplete && !isOwner && !task.is_coop && pendingSkip && (
         <div className="mt-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 animate-in fade-in">
           <p className="text-sm text-indigo-200 mb-3">
-            <span className="font-semibold">Skip requested:</span> &ldquo;{pendingSkip.reason || "No reason provided"}&rdquo;
+            <span className="font-semibold">Skip requested:</span> &ldquo;{decryptedSkipReason || "No reason provided"}&rdquo;
           </p>
           <div className="flex gap-2">
             <button

@@ -90,11 +90,17 @@ export function SpaceSetup() {
     setErrorMessage("");
 
     try {
-      // 1. Create space on server
+      // 1. Generate local E2EE key FIRST
+      await initSodium();
+      const key = await generateSpaceKey();
+      
+      const encryptedSpaceName = spaceName.trim() ? await encryptPayload(spaceName.trim(), key) : null;
+
+      // 2. Create space on server
       const res = await fetch("/api/space/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spaceName: spaceName.trim() || null }),
+        body: JSON.stringify({ spaceName: encryptedSpaceName }),
       });
 
       if (res.status === 409) {
@@ -106,10 +112,6 @@ export function SpaceSetup() {
 
       const data: CreateResult = await res.json();
       const { spaceId, inviteCode } = data;
-
-      // 2. Generate E2EE Key
-      await initSodium();
-      const key = await generateSpaceKey();
 
       // 3. Encrypt test payload & update space
       const testPayload = await encryptPayload(E2EE_TEST_PLAINTEXT, key);

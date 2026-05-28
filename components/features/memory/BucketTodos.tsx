@@ -10,6 +10,7 @@ interface Todo {
   id: string
   encrypted_text: string
   is_completed: boolean
+  assigned_to: string | null
 }
 
 interface DecryptedTodo extends Todo {
@@ -18,7 +19,7 @@ interface DecryptedTodo extends Todo {
 
 export function BucketTodos({ itemId }: { itemId: string }) {
   const { encrypt, decrypt, key } = useE2EEKey()
-  const userId = useSpaceStore((s) => s.userId)
+  const { userId, partnerId, partnerName } = useSpaceStore()
   const [todos, setTodos] = useState<DecryptedTodo[]>([])
   const [newTodo, setNewTodo] = useState('')
   const [loading, setLoading] = useState(true)
@@ -35,7 +36,7 @@ export function BucketTodos({ itemId }: { itemId: string }) {
             const text = await decrypt(todo.encrypted_text)
             return { ...todo, text }
           } catch {
-            return { ...todo, text: '[encrypted]' }
+            return { ...todo, text: '[unable to decrypt]' }
           }
         })
       )
@@ -110,6 +111,32 @@ export function BucketTodos({ itemId }: { itemId: string }) {
     }
   }
 
+  const toggleAssignment = async (todo: DecryptedTodo) => {
+    // Cycle: null -> userId -> partnerId -> null
+    let newAssigned: string | null = null
+    if (todo.assigned_to === null) {
+      newAssigned = userId
+    } else if (todo.assigned_to === userId) {
+      newAssigned = partnerId
+    } else {
+      newAssigned = null
+    }
+
+    try {
+      setTodos((prev) =>
+        prev.map((t) => (t.id === todo.id ? { ...t, assigned_to: newAssigned } : t))
+      )
+      await fetch(`/api/bucket/${itemId}/todos/${todo.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assigned_to: newAssigned }),
+      })
+    } catch (err) {
+      console.error(err)
+      await fetchTodos()
+    }
+  }
+
   const deleteTodo = async (todoId: string) => {
     try {
       setTodos((prev) => prev.filter((t) => t.id !== todoId))
@@ -164,12 +191,39 @@ export function BucketTodos({ itemId }: { itemId: string }) {
                 {todo.text}
               </span>
             </button>
-            <button
-              onClick={() => deleteTodo(todo.id)}
-              className="text-neutral-600 transition-colors hover:text-rose-500"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => toggleAssignment(todo)}
+                className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold uppercase transition-colors ${
+                  todo.assigned_to === userId
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                    : todo.assigned_to === partnerId
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    : 'bg-neutral-800 text-neutral-500 border border-neutral-700/50 hover:bg-neutral-700'
+                }`}
+                title={
+                  todo.assigned_to === userId
+                    ? 'Assigned to you'
+                    : todo.assigned_to === partnerId
+                    ? `Assigned to ${partnerName || 'Partner'}`
+                    : 'Click to assign'
+                }
+              >
+                {todo.assigned_to === userId
+                  ? 'Me'
+                  : todo.assigned_to === partnerId
+                  ? (partnerName?.[0] || 'P')
+                  : '+'}
+              </button>
+
+              <button
+                onClick={() => deleteTodo(todo.id)}
+                className="text-neutral-600 transition-colors hover:text-rose-500 ml-2"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -8,6 +8,7 @@ import {
   useMutation,
   useOthers,
 } from "@/lib/liveblocks/config";
+import { useE2EEKey } from "@/hooks/use-e2ee-key";
 import { useSpaceStore } from "@/store/space.store";
 import {
   Target,
@@ -18,6 +19,7 @@ import {
   Loader2,
   Check,
   UserCheck,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,7 +45,9 @@ function FocusContent() {
   const userId = useSpaceStore((s) => s.userId);
   const partnerName = useSpaceStore((s) => s.partnerName);
 
+  const { encrypt, decrypt } = useE2EEKey();
   const [taskLabel, setTaskLabel] = useState("");
+  const [decryptedTaskLabel, setDecryptedTaskLabel] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [showComplete, setShowComplete] = useState(false);
   const [finalDuration, setFinalDuration] = useState(0);
@@ -59,6 +63,24 @@ function FocusContent() {
   const participants = focusState?.participants ?? [];
   const iAmParticipant = Boolean(userId && participants.includes(userId));
   const partnerStartedWithoutMe = isActive && !iAmParticipant;
+
+  useEffect(() => {
+    let active = true;
+    const loadDecrypted = async () => {
+      if (focusState?.taskLabel) {
+        try {
+          const dec = await decrypt(focusState.taskLabel);
+          if (active) setDecryptedTaskLabel(dec);
+        } catch (e) {
+          if (active) setDecryptedTaskLabel(focusState.taskLabel); // fallback
+        }
+      } else {
+        if (active) setDecryptedTaskLabel("");
+      }
+    };
+    loadDecrypted();
+    return () => { active = false; };
+  }, [focusState?.taskLabel, decrypt]);
 
   // ── Timer ─────────────────────────────────────────────────────────
 
@@ -173,21 +195,14 @@ function FocusContent() {
       <div className="min-h-screen bg-black px-4 py-8">
         <Header />
         <div className="mx-auto max-w-md">
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 text-center space-y-6">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20">
-              <Check className="h-8 w-8 text-emerald-400" />
+          <div className="flex flex-col items-center justify-center pt-24 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="h-24 w-24 rounded-full bg-emerald-500/20 flex items-center justify-center mb-8">
+              <CheckCircle2 className="h-12 w-12 text-emerald-400" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Great Focus Session!
-              </h2>
-              <p className="text-sm text-zinc-400">
-                You stayed focused for{" "}
-                <span className="text-white font-medium">
-                  {formatElapsed(finalDuration)}
-                </span>
-              </p>
-            </div>
+            <h2 className="text-3xl font-bold text-white mb-4">Focus Session Complete!</h2>
+            <p className="text-zinc-400 max-w-md mb-8">
+              You focused on <span className="text-white font-medium">{decryptedTaskLabel}</span> for {formatElapsed(finalDuration)}. Great work!
+            </p>
             <button
               onClick={() => {
                 resetSession();
@@ -217,7 +232,7 @@ function FocusContent() {
             <div className="inline-flex items-center gap-2 rounded-full bg-violet-500/10 px-4 py-2">
               <Target className="h-4 w-4 text-violet-400" />
               <span className="text-sm text-violet-300 font-medium">
-                {focusState?.taskLabel}
+                {decryptedTaskLabel}
               </span>
             </div>
 
@@ -280,7 +295,7 @@ function FocusContent() {
               <p className="text-sm text-zinc-400">
                 Task:{" "}
                 <span className="text-white">
-                  {focusState?.taskLabel}
+                  {decryptedTaskLabel}
                 </span>
               </p>
               <p className="text-sm text-zinc-400 mt-1">
@@ -342,9 +357,10 @@ function FocusContent() {
           />
 
           <button
-            onClick={() => {
+            onClick={async () => {
               if (!taskLabel.trim()) return;
-              startSession(taskLabel.trim());
+              const encrypted = await encrypt(taskLabel.trim());
+              startSession(encrypted);
             }}
             disabled={!taskLabel.trim()}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-medium text-black transition-colors hover:bg-neutral-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"

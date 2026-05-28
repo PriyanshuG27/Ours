@@ -6,6 +6,7 @@ type CompletionPayload = {
   user_id: string;
   photo_url: string | null;
   encrypted_note: string;
+  vibe_rating?: number;
 };
 
 export async function POST(
@@ -50,6 +51,8 @@ export async function POST(
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   const encryptedNote = formData.get("encryptedNote") as string | null;
+  const vibeRatingStr = formData.get("vibeRating") as string | null;
+  const vibeRating = vibeRatingStr ? parseInt(vibeRatingStr) : undefined;
 
   if (!encryptedNote) {
     return NextResponse.json(
@@ -96,6 +99,7 @@ export async function POST(
     user_id: user.id,
     photo_url: fileName,
     encrypted_note: encryptedNote,
+    vibe_rating: vibeRating,
   };
 
   // Update the correct slot with typed update

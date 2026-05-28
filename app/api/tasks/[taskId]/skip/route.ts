@@ -127,9 +127,11 @@ export async function POST(
       await supabase.from("feed_events").insert({
         space_id: task.space_id,
         author_id: user.id,
-        type: "note", // simple note for feed
-        encrypted_caption: null, // Would normally encrypt "Used a streak freeze" but since server can't encrypt, we'll just not post a feed event or let it be blank.
-        // Actually, we don't strictly need a feed event.
+        type: "note",
+        metadata: {
+          isFreeze: true,
+          taskTitle: task.title,
+        },
       });
     }
 

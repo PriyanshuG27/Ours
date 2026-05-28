@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { Settings } from 'lucide-react'
 import { useSpace } from '@/hooks/use-space'
+import { useE2EEKey } from '@/hooks/use-e2ee-key'
 import { PresenceDot } from '@/components/features/home/PresenceDot'
+import { SettingsModal } from '@/components/features/settings/SettingsModal'
 
 function getInitials(name: string): string {
   return name
@@ -24,29 +27,33 @@ function hashToHue(str: string): number {
 }
 
 export function HomeHeader() {
-  const { partnerName, partnerId } = useSpace()
+  const { spaceId, partnerName, partnerId } = useSpace()
+  const { key } = useE2EEKey()
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const myInitials = 'ME'
   const partnerInitials = partnerName ? getInitials(partnerName) : '?'
   const partnerHue = partnerId ? hashToHue(partnerId) : 260
 
   return (
-    <header className="px-6 pb-4 pt-safe">
-      {/* Top bar */}
-      <div className="flex items-center justify-between py-4">
-        <p className="text-sm font-medium text-neutral-400">
-          {partnerName ?? 'Partner'}
-        </p>
-        <h1 className="bg-gradient-to-r from-neutral-100 to-neutral-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
-          Ours
-        </h1>
-        <button
-          aria-label="Settings"
-          className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-neutral-300 active:scale-95"
-        >
-          <Settings className="h-5 w-5" />
-        </button>
-      </div>
+    <>
+      <header className="px-6 pb-4 pt-safe">
+        {/* Top bar */}
+        <div className="flex items-center justify-between py-4">
+          <p className="text-sm font-medium text-neutral-400">
+            {partnerName ?? 'Partner'}
+          </p>
+          <h1 className="bg-gradient-to-r from-neutral-100 to-neutral-400 bg-clip-text text-lg font-bold tracking-tight text-transparent">
+            Ours
+          </h1>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            aria-label="Settings"
+            className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-neutral-300 active:scale-95 flex items-center gap-2"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+        </div>
 
       {/* Profile photo placeholders */}
       <div className="flex items-end justify-center gap-8 pt-4">
@@ -84,5 +91,13 @@ export function HomeHeader() {
         </div>
       </div>
     </header>
-  )
+
+    <SettingsModal 
+      isOpen={isSettingsOpen} 
+      onClose={() => setIsSettingsOpen(false)} 
+      spaceId={spaceId} 
+      e2eeKey={key} 
+    />
+  </>
+)
 }
