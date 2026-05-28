@@ -40,6 +40,15 @@ export async function GET(request: NextRequest) {
     .order("created_at", { ascending: false })
     .limit(limit + 1);
 
+  // Memory Wall: filter to pinned items only
+  const pinned = searchParams.get("pinned");
+  if (pinned === "true") {
+    query = query.eq("is_pinned", true);
+  } else {
+    // Exclude captures from the main feed
+    query = query.neq("type", "capture");
+  }
+
   if (cursor) {
     query = query.lt("created_at", cursor);
   }
@@ -69,10 +78,24 @@ export async function GET(request: NextRequest) {
         .from("media")
         .createSignedUrl(event.media_url as string, 3600); // 1 hour expiry
 
-      return {
+      const eventData = {
         ...event,
         media_url: data?.signedUrl ?? null,
       };
+
+      // Also sign photo_b_url if it's a paired capture
+      if ((event.metadata as any)?.photo_b_url) {
+        const { data: bData } = await supabase.storage
+          .from("media")
+          .createSignedUrl((event.metadata as any).photo_b_url, 3600);
+          
+        eventData.metadata = {
+          ...(eventData.metadata as any),
+          photo_b_url: bData?.signedUrl ?? null,
+        };
+      }
+
+      return eventData;
     })
   );
 

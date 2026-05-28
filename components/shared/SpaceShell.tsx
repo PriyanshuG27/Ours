@@ -9,6 +9,7 @@ import { saveKey } from '@/hooks/use-e2ee-key'
 import { supabase } from '@/lib/supabase/client'
 import { AlertTriangle, Lock, Loader2 } from 'lucide-react'
 import { NudgeListener } from '@/components/features/streaks/NudgeListener'
+import { CaptureListener } from '@/components/features/memory/CaptureListener'
 
 const E2EE_TEST_PLAINTEXT = 'ours-e2ee-verification-token'
 
@@ -153,6 +154,7 @@ export function SpaceShell({ children }: { children: ReactNode }) {
   return (
     <PresenceProvider>
       <NudgeListener />
+      <CaptureListener />
       {children}
     </PresenceProvider>
   )

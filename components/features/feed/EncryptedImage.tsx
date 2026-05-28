@@ -10,14 +10,23 @@ interface EncryptedImageProps {
   className?: string
 }
 
+// Global cache to prevent double-fetching and double-decrypting, 
+// and to fix issues where signed URLs expire before the zoomed overlay is opened.
+const decryptedCache = new Map<string, string>()
+
 export function EncryptedImage({ src, alt, className }: EncryptedImageProps) {
   const { decryptBinary } = useE2EEKey()
-  const [objectUrl, setObjectUrl] = useState<string | null>(null)
+  const [objectUrl, setObjectUrl] = useState<string | null>(decryptedCache.get(src) ?? null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
+    // If it's already in the cache, use it instantly.
+    if (decryptedCache.has(src)) {
+      setObjectUrl(decryptedCache.get(src)!)
+      return
+    }
+
     let cancelled = false
-    let currentObjectUrl: string | null = null
 
     async function loadAndDecrypt() {
       try {
@@ -35,11 +44,10 @@ export function EncryptedImage({ src, alt, className }: EncryptedImageProps) {
         const blob = new Blob([new Uint8Array(decryptedBytes)], { type: 'image/webp' })
         const url = URL.createObjectURL(blob)
         
+        decryptedCache.set(src, url)
+        
         if (!cancelled) {
           setObjectUrl(url)
-          currentObjectUrl = url
-        } else {
-          URL.revokeObjectURL(url)
         }
       } catch (err) {
         if (!cancelled) {
@@ -52,9 +60,6 @@ export function EncryptedImage({ src, alt, className }: EncryptedImageProps) {
 
     return () => {
       cancelled = true
-      if (currentObjectUrl) {
-        URL.revokeObjectURL(currentObjectUrl)
-      }
     }
   }, [src, decryptBinary])
 

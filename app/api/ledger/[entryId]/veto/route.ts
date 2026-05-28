@@ -18,13 +18,19 @@ export async function POST(
   try {
     const { entryId } = params;
 
+    // We do NOT check if they have a token here to keep server simple; 
+    // the UI hides the button. If we wanted strict mode, we'd check previous vetoes this month.
+
     const { error } = await supabase
       .from("ledger_entries")
       .update({
-        forgiveness_requested: true,
-        forgiveness_requested_at: new Date().toISOString(),
+        is_settled: true,
+        is_vetoed: true,
+        settled_at: new Date().toISOString(),
       })
-      .eq("id", entryId);
+      .eq("id", entryId)
+      // Ensure only the charged person can veto
+      .eq("charged_id", user.id);
 
     if (error) throw error;
 

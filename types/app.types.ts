@@ -158,23 +158,43 @@ export type BoardCardMessage = {
 };
 
 export enum BucketItemStatus {
-  PLANNED = "planned",
+  SOMEDAY = "someday",
+  PLANNING = "planning",
   DONE = "done",
 }
 
+export type BucketCompletion = {
+  user_id: string;
+  photo_url: string;
+  /** E2EE ciphertext */
+  encrypted_note: string;
+};
+
 export type BucketItem = {
   id: string;
-  status: BucketItemStatus;
-  /** E2EE ciphertext */
+  space_id: string;
+  creator_id: string;
   title: string;
+  /** E2EE ciphertext */
+  encrypted_why: string;
+  status: BucketItemStatus;
+  completion_a: BucketCompletion | null;
+  completion_b: BucketCompletion | null;
+  completed_at: string | null;
+  created_at: string;
 };
 
 export type DictionaryEntry = {
   id: string;
+  space_id: string;
+  author_id: string;
   /** E2EE ciphertext */
-  word: string;
+  encrypted_word: string;
   /** E2EE ciphertext */
-  definition: string;
+  encrypted_meaning: string;
+  /** E2EE ciphertext — nullable */
+  encrypted_origin: string | null;
+  created_at: string;
 };
 
 export type WeeklyStats = {
@@ -185,11 +205,17 @@ export type WeeklyStats = {
   energy_average: number;
 };
 
-export type CaptureEvent = {
+export interface CaptureEvent {
   id: string;
-  user_id: string;
-  /** E2EE ciphertext */
-  media_url: string;
+  space_id: string;
+  initiator_id: string;
+  expires_at: string;
+  photo_a_url: string | null;
+  photo_b_url: string | null;
+  is_paired: boolean;
+  partner_joined: boolean;
+  shutter_clicked_at: string | null;
+  created_at: string;
 };
 
 export enum MoodTag {

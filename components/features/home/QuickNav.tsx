@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Rss, MonitorPlay, LayoutGrid, Focus, Flame, BookOpen } from 'lucide-react'
+import { Rss, MonitorPlay, LayoutGrid, Focus, Flame, BookOpen, ImagePlus, MapPinned, Languages } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSpaceStore } from '@/store/space.store'
@@ -58,6 +58,27 @@ const baseCards: NavCard[] = [
     href: '/rulebook',
     accent: 'bg-rose-500/10 text-rose-400',
     description: 'Rules & ledger',
+  },
+  {
+    label: 'Memory Wall',
+    icon: ImagePlus,
+    href: '/memory-wall',
+    accent: 'bg-pink-500/10 text-pink-400',
+    description: 'Pinned moments',
+  },
+  {
+    label: 'Bucket List',
+    icon: MapPinned,
+    href: '/bucket-list',
+    accent: 'bg-teal-500/10 text-teal-400',
+    description: 'Dreams together',
+  },
+  {
+    label: 'Dictionary',
+    icon: Languages,
+    href: '/dictionary',
+    accent: 'bg-indigo-500/10 text-indigo-400',
+    description: 'Our language',
   },
 ]
 

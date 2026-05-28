@@ -79,3 +79,12 @@ export function findBestMatch(
     w.postMessage({ type: "findBestMatch", userAInputs, userBInputs });
   });
 }
+
+/**
+ * AI Judge: Evaluates the similarity between a rule and the charge note.
+ * Returns the cosine similarity (0 to 1).
+ */
+export async function evaluateDispute(ruleText: string, chargeNote: string): Promise<number> {
+  const result = await findBestMatch([ruleText], [chargeNote]);
+  return result.bestSimilarity;
+}

@@ -39,9 +39,6 @@ export async function GET(request: NextRequest) {
     query = query.eq("is_settled", true);
   } else if (settledParam === "false") {
     query = query.eq("is_settled", false);
-  } else {
-    // Default to unsettled only
-    query = query.eq("is_settled", false);
   }
 
   const { data: entries, error, count } = await query;

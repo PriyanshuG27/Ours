@@ -7,7 +7,7 @@ import { encryptPayload, decryptPayload } from '@/lib/crypto/e2ee'
 import { RuleCard, DecryptedRule } from './RuleCard'
 import { LedgerEntry, DecryptedLedgerEntry } from './LedgerEntry'
 import { ChargeModal } from './ChargeModal'
-import { Plus, Trophy } from 'lucide-react'
+import { Plus, Trophy, Flame, AlertCircle, Scale, ShieldAlert } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 export function RulebookView() {
@@ -22,6 +22,7 @@ export function RulebookView() {
   const [category, setCategory] = useState('Household')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isBurningToken, setIsBurningToken] = useState(false)
   
   const [chargeTarget, setChargeTarget] = useState<DecryptedRule | null>(null)
   
@@ -30,12 +31,12 @@ export function RulebookView() {
   useEffect(() => {
     if (!key || !userId || !isLoaded) return
 
-    async function fetchData() {
-      setIsLoading(true)
+    async function fetchData(isBackground = false) {
+      if (!isBackground) setIsLoading(true)
       try {
         const [rulesRes, entriesRes] = await Promise.all([
           fetch('/api/rules'),
-          fetch('/api/ledger?settled=false')
+          fetch('/api/ledger')
         ])
 
         const rulesData = await rulesRes.json()
@@ -65,7 +66,7 @@ export function RulebookView() {
       } catch (err) {
         console.error('Failed to load rulebook data:', err)
       } finally {
-        setIsLoading(false)
+        if (!isBackground) setIsLoading(false)
       }
     }
 
@@ -73,10 +74,10 @@ export function RulebookView() {
 
     const channel = supabase.channel('rulebook-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'rules' }, () => {
-        fetchData()
+        fetchData(true)
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ledger_entries' }, () => {
-        fetchData()
+        fetchData(true)
       })
       .subscribe()
 
@@ -146,7 +147,7 @@ export function RulebookView() {
 
       if (res.ok) {
         // Optimistically reload ledger or just append
-        const newRes = await fetch('/api/ledger?settled=false')
+        const newRes = await fetch('/api/ledger')
         const entriesData = await newRes.json()
         const decryptedEntries = await Promise.all(
           (entriesData.entries || []).map(async (e: any) => {
@@ -188,6 +189,25 @@ export function RulebookView() {
     }
   }
 
+  const handleVeto = async (entryId: string) => {
+    if (!hasGoldenToken) return
+    
+    // Trigger God-Level Animation
+    setIsBurningToken(true)
+    await new Promise(r => setTimeout(r, 2500))
+
+    try {
+      const res = await fetch(`/api/ledger/${entryId}/veto`, { method: 'POST' })
+      if (res.ok) {
+        setEntries(prev => prev.map(e => e.id === entryId ? { ...e, is_settled: true, is_vetoed: true, settled_at: new Date().toISOString() } : e))
+      }
+    } catch (err) {
+      console.error('Failed to veto debt:', err)
+    } finally {
+      setIsBurningToken(false)
+    }
+  }
+
   if (isLoading || !isLoaded) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
@@ -202,6 +222,87 @@ export function RulebookView() {
   
   const myComplianceScore = entries.filter(e => e.is_settled && e.charged_id === userId).length
   const partnerComplianceScore = entries.filter(e => e.is_settled && e.charged_id === partnerId).length
+
+  const sevenDaysAgoMs = new Date().getTime() - 7 * 24 * 60 * 60 * 1000
+
+  let mostRecentForgivenessMs = 0
+  entries.forEach(e => {
+    if (e.charged_id === userId && e.forgiveness_requested_at) {
+      const ms = new Date(e.forgiveness_requested_at).getTime()
+      if (ms > mostRecentForgivenessMs) {
+        mostRecentForgivenessMs = ms
+      }
+    }
+  })
+
+  let canAskForgiveness = true
+  let cooldownTargetMs = 0
+
+  if (mostRecentForgivenessMs > sevenDaysAgoMs) {
+    canAskForgiveness = false
+    cooldownTargetMs = mostRecentForgivenessMs + 7 * 24 * 60 * 60 * 1000
+  }
+
+  const getStrikes = (ruleId: string, chargedId: string) => {
+    return entries.filter(e => e.rule_id === ruleId && e.charged_id === chargedId).length
+  }
+
+  // Token Mechanic
+  const currentMonth = new Date().getMonth()
+  const myVetoesThisMonth = entries.filter(e => e.is_vetoed && e.charged_id === userId && e.settled_at && new Date(e.settled_at).getMonth() === currentMonth).length
+  const hasGoldenToken = myVetoesThisMonth === 0
+
+  // Category Breakdown Stats
+  const categoryCounts: Record<string, number> = {}
+  let totalEntries = 0
+  entries.forEach(e => {
+    // Note: We need category from the database payload. If e.rules is missing or category is missing, default to 'Other'
+    const cat = (e as any).rules?.category || 'Household'
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
+    totalEntries++
+  })
+
+  // 7-Day Debt Tides
+  const last7Days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i))
+    d.setHours(0, 0, 0, 0)
+    return { date: d, count: 0 }
+  })
+  
+  entries.forEach(e => {
+    const entryDate = new Date(e.created_at)
+    entryDate.setHours(0, 0, 0, 0)
+    const dayMatch = last7Days.find(d => d.date.getTime() === entryDate.getTime())
+    if (dayMatch) {
+      dayMatch.count++
+    }
+  })
+  
+  const maxTide = Math.max(...last7Days.map(d => d.count), 1)
+
+  // Advanced Stats
+  const myActiveDebts = unsettledEntries.filter(e => e.charged_id === userId).length
+  const partnerActiveDebts = unsettledEntries.filter(e => e.charged_id === partnerId).length
+
+  let mostBrokenRuleText = 'None yet'
+  let highestChargeCount = 0
+  const ruleCounts: Record<string, { count: number, text: string }> = {}
+  
+  entries.forEach(e => {
+    if (!ruleCounts[e.rule_id]) {
+      ruleCounts[e.rule_id] = { count: 0, text: e.decryptedRuleText }
+    }
+    ruleCounts[e.rule_id].count++
+    if (ruleCounts[e.rule_id].count > highestChargeCount) {
+      highestChargeCount = ruleCounts[e.rule_id].count
+      mostBrokenRuleText = ruleCounts[e.rule_id].text
+    }
+  })
+
+  // Forgiveness denied vs granted? (If it's settled and forgiveness was requested, it was granted!)
+  const forgivenessGrantedMe = entries.filter(e => e.charged_id === userId && e.forgiveness_requested && e.is_settled).length
+  const forgivenessGrantedPartner = entries.filter(e => e.charged_id === partnerId && e.forgiveness_requested && e.is_settled).length
 
   return (
     <div className="mx-auto max-w-lg pb-24 pt-8 px-4">
@@ -345,8 +446,13 @@ export function RulebookView() {
                   entry={entry}
                   currentUserId={userId!}
                   partnerName={partnerName || 'Partner'}
+                  strikeCount={getStrikes(entry.rule_id, entry.charged_id)}
+                  canAskForgiveness={canAskForgiveness}
+                  cooldownTargetMs={cooldownTargetMs}
+                  hasGoldenToken={hasGoldenToken}
                   onSettle={() => handleSettle(entry.id)}
                   onForgiveRequest={() => handleForgiveRequest(entry.id)}
+                  onVeto={() => handleVeto(entry.id)}
                 />
               ))}
             </div>
@@ -355,25 +461,139 @@ export function RulebookView() {
       )}
 
       {activeTab === 'scoreboard' && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="rounded-2xl border border-neutral-800/50 bg-neutral-900/40 p-6 flex flex-col gap-6">
-            <div className="text-center">
-              <Trophy className="h-8 w-8 text-amber-400 mx-auto mb-2" />
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          
+          {/* Main Compliance Score */}
+          <div className="rounded-2xl border border-neutral-800/50 bg-neutral-900/40 p-6 flex flex-col gap-6 relative overflow-hidden">
+            <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-amber-500/5 blur-[50px]" />
+            <div className="text-center relative z-10">
+              <Trophy className="h-8 w-8 text-amber-400 mx-auto mb-2 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
               <h2 className="text-lg font-medium text-neutral-200">Compliance Scoreboard</h2>
-              <p className="text-sm text-neutral-500">Total debts settled and resolved</p>
+              <p className="text-sm text-neutral-500">Total debts successfully settled</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="rounded-xl border border-neutral-800/50 bg-neutral-950 p-4">
+            <div className="grid grid-cols-2 gap-4 text-center relative z-10">
+              <div className="rounded-xl border border-neutral-800/50 bg-neutral-950 p-4 shadow-inner">
                 <p className="text-xs font-medium text-neutral-500 uppercase tracking-widest mb-1">You</p>
-                <p className="text-3xl font-semibold text-white">{myComplianceScore}</p>
+                <p className="text-4xl font-bold text-white">{myComplianceScore}</p>
               </div>
-              <div className="rounded-xl border border-neutral-800/50 bg-neutral-950 p-4">
+              <div className="rounded-xl border border-neutral-800/50 bg-neutral-950 p-4 shadow-inner">
                 <p className="text-xs font-medium text-neutral-500 uppercase tracking-widest mb-1">{partnerName}</p>
-                <p className="text-3xl font-semibold text-white">{partnerComplianceScore}</p>
+                <p className="text-4xl font-bold text-white">{partnerComplianceScore}</p>
               </div>
             </div>
           </div>
+
+          {/* Active Debts vs Forgiveness */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Scale className="h-4 w-4 text-rose-400" />
+                <h3 className="text-xs font-medium text-neutral-300 uppercase tracking-wider">Active Debts</h3>
+              </div>
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-[10px] text-neutral-500 uppercase">You Owe</p>
+                  <p className="text-2xl font-semibold text-rose-400">{myActiveDebts}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-neutral-500 uppercase">They Owe</p>
+                  <p className="text-2xl font-semibold text-rose-400">{partnerActiveDebts}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldAlert className="h-4 w-4 text-indigo-400" />
+                <h3 className="text-xs font-medium text-neutral-300 uppercase tracking-wider">Forgiven</h3>
+              </div>
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-[10px] text-neutral-500 uppercase">You</p>
+                  <p className="text-2xl font-semibold text-indigo-400">{forgivenessGrantedMe}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-neutral-500 uppercase">Partner</p>
+                  <p className="text-2xl font-semibold text-indigo-400">{forgivenessGrantedPartner}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Hall of Shame */}
+          <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent p-5 relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-2">
+              <Flame className="h-5 w-5 text-amber-500" />
+              <h3 className="text-sm font-medium text-amber-500 uppercase tracking-wider">Hall of Shame</h3>
+            </div>
+            <p className="text-xs text-neutral-400 mb-2">Most frequently broken rule ({highestChargeCount} times):</p>
+            <p className="text-sm text-neutral-200 font-medium italic bg-neutral-950/50 p-3 rounded-lg border border-amber-500/10">
+              "{mostBrokenRuleText}"
+            </p>
+          </div>
+
+          {/* Golden Token Inventory */}
+          <div className="rounded-2xl border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-transparent p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-yellow-500 uppercase tracking-wider mb-1">Golden Token</h3>
+                <p className="text-xs text-neutral-400">Monthly Get Out of Jail Free Card</p>
+              </div>
+              <div className={`h-12 w-12 rounded-full border-2 flex items-center justify-center ${hasGoldenToken ? 'border-yellow-400 bg-yellow-400/20 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)] animate-pulse' : 'border-neutral-700 bg-neutral-800 text-neutral-600'}`}>
+                <span className="text-xl">🎟️</span>
+              </div>
+            </div>
+            {!hasGoldenToken && <p className="text-[10px] text-neutral-500 mt-2 uppercase tracking-wide">Restocks 1st of next month</p>}
+          </div>
+
+          {/* Category Breakdown */}
+          <div className="rounded-2xl border border-neutral-800/50 bg-neutral-900/40 p-5">
+            <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider mb-4">Category Breakdown</h3>
+            <div className="space-y-3">
+              {Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).map(([cat, count]) => (
+                <div key={cat}>
+                  <div className="flex justify-between text-xs text-neutral-400 mb-1">
+                    <span>{cat}</span>
+                    <span>{Math.round((count / totalEntries) * 100)}% ({count})</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-neutral-800 overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-violet-500" 
+                      style={{ width: `${(count / totalEntries) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+              {totalEntries === 0 && <p className="text-xs text-neutral-500 italic">No rules broken yet.</p>}
+            </div>
+          </div>
+
+          {/* Debt Tides (7-Day Activity) */}
+          <div className="rounded-2xl border border-neutral-800/50 bg-neutral-900/40 p-5">
+            <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider mb-4">Debt Tides (Last 7 Days)</h3>
+            <div className="flex items-end justify-between h-24 gap-2">
+              {last7Days.map((day, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                  <div className="w-full relative flex-1 flex items-end">
+                    <div 
+                      className="w-full rounded-t-sm bg-indigo-500/50 transition-all group-hover:bg-indigo-400" 
+                      style={{ height: `${Math.max((day.count / maxTide) * 100, 2)}%` }}
+                    />
+                    {day.count > 0 && (
+                      <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {day.count}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-neutral-600 uppercase tracking-widest">
+                    {day.date.toLocaleDateString('en-US', { weekday: 'short' })[0]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -383,6 +603,31 @@ export function RulebookView() {
           onClose={() => setChargeTarget(null)}
           onCharge={handleCharge}
         />
+      )}
+
+      {isBurningToken && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative flex flex-col items-center justify-center">
+            {/* Dramatic glow layers */}
+            <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+              <div className="h-[500px] w-[500px] rounded-full bg-yellow-500/20 blur-[100px] animate-pulse" />
+              <div className="absolute h-[300px] w-[300px] rounded-full bg-rose-600/40 blur-[80px] animate-ping" />
+            </div>
+            
+            {/* The burning token */}
+            <div className="relative z-10 animate-bounce">
+              <Flame className="h-40 w-40 text-yellow-400 drop-shadow-[0_0_50px_rgba(250,204,21,1)]" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-6xl drop-shadow-2xl">🎟️</span>
+              </div>
+            </div>
+
+            <h1 className="mt-12 text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-yellow-500 to-rose-600 animate-pulse tracking-[0.2em] uppercase text-center drop-shadow-2xl z-10">
+              Veto Activated<br/>
+              <span className="text-2xl text-rose-400 tracking-widest opacity-80 block mt-4">Debt Annihilated</span>
+            </h1>
+          </div>
+        </div>
       )}
     </div>
   )
