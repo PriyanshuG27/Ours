@@ -1,12 +1,52 @@
-// public/sw.js
+// public/sw.js — Custom service worker for Ours PWA
+// Handles: push notifications, notification clicks, offline fallback
 
+// ── Offline Fallback ─────────────────────────────────────────────────
+const OFFLINE_URL = '/_offline'
+const CACHE_NAME = 'ours-offline-v1'
+
+self.addEventListener('install', function (event) {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(function (cache) {
+      // Pre-cache the offline fallback page so it's available without network
+      return cache.add(OFFLINE_URL)
+    })
+  )
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
+    caches.keys().then(function (names) {
+      return Promise.all(
+        names
+          .filter(function (name) { return name !== CACHE_NAME })
+          .map(function (name) { return caches.delete(name) })
+      )
+    })
+  )
+  self.clients.claim()
+})
+
+self.addEventListener('fetch', function (event) {
+  // Only handle navigation requests (page loads) — not API calls or assets
+  if (event.request.mode !== 'navigate') return
+
+  event.respondWith(
+    fetch(event.request).catch(function () {
+      return caches.match(OFFLINE_URL)
+    })
+  )
+})
+
+// ── Push Notifications ───────────────────────────────────────────────
 self.addEventListener('push', function (event) {
   if (event.data) {
     const data = event.data.json()
     const options = {
       body: data.body,
-      icon: data.icon || '/icon-192x192.png',
-      badge: '/badge-72x72.png', // Optional: monochrome icon for the status bar
+      icon: data.icon || '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
@@ -19,16 +59,15 @@ self.addEventListener('push', function (event) {
 })
 
 self.addEventListener('notificationclick', function (event) {
-  console.log('Notification click received.')
   event.notification.close()
 
   const urlToOpen = event.notification.data.url || '/'
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (windowClients) {
       // Check if there is already a window/tab open with the target URL
-      for (let i = 0; i < windowClients.length; i++) {
-        const client = windowClients[i]
+      for (var i = 0; i < windowClients.length; i++) {
+        var client = windowClients[i]
         // If so, just focus it.
         if (client.url === urlToOpen && 'focus' in client) {
           return client.focus()
@@ -46,5 +85,5 @@ self.addEventListener('notificationclick', function (event) {
 try {
   importScripts('pwa-sw.js')
 } catch (e) {
-  console.log('No next-pwa worker found, skipping import.')
+  // next-pwa worker not available (e.g., development mode) — skip silently
 }

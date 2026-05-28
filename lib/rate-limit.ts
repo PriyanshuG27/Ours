@@ -32,6 +32,7 @@ export async function checkRateLimit(
   if (error) {
     // If we can't verify the rate limit, fail open to avoid blocking
     // legitimate requests. Log the error for observability.
+    // eslint-disable-next-line no-console
     console.error('[rate-limit] Error checking notification_log:', error)
     return true
   }

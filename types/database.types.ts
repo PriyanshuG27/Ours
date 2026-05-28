@@ -698,6 +698,7 @@ export type Database = {
           id: string
           invite_code: string
           is_active: boolean | null
+          severed_at: string | null
           space_name: string | null
           user_names: string[]
           users: string[]
@@ -708,6 +709,7 @@ export type Database = {
           id?: string
           invite_code: string
           is_active?: boolean | null
+          severed_at?: string | null
           space_name?: string | null
           user_names?: string[]
           users?: string[]
@@ -718,6 +720,7 @@ export type Database = {
           id?: string
           invite_code?: string
           is_active?: boolean | null
+          severed_at?: string | null
           space_name?: string | null
           user_names?: string[]
           users?: string[]
@@ -900,6 +903,48 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          subscription: Json
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          subscription: Json
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          subscription?: Json
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      notification_log: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          sent_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          sent_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: string
+          sent_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -907,6 +952,7 @@ export type Database = {
     Functions: {
       archive_old_resolved_cards: { Args: never; Returns: undefined }
       auto_approve_pending_skips: { Args: never; Returns: undefined }
+      cleanup_severed_spaces: { Args: never; Returns: undefined }
       join_space: {
         Args: { p_invite_code: string; p_user_id: string; p_user_name: string }
         Returns: string

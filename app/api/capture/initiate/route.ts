@@ -58,8 +58,8 @@ export async function POST() {
   }
 
   // Phase 12 — send push notification to partner
-  const space = spaces[0];
-  const partnerId = space.users?.find((id: string) => id !== user.id);
+  const space = spaces?.[0];
+  const partnerId = space?.users?.find((id: string) => id !== user.id);
   if (partnerId) {
     supabase.functions.invoke('event-notifications', {
       body: {
