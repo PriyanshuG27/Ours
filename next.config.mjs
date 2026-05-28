@@ -9,6 +9,10 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   appDirOnly: true,
+  sw: "pwa-sw.js",
+  fallbacks: {
+    document: "/_offline",
+  },
 });
 
 /** @type {import('next').NextConfig} */

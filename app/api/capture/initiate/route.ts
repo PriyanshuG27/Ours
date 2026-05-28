@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { adminClient } from "@/lib/supabase/admin";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -16,7 +18,7 @@ export async function POST() {
   // Find user's active space
   const { data: spaces } = await supabase
     .from("spaces")
-    .select("id")
+    .select("id, users")
     .eq("is_active", true)
     .limit(1);
 
@@ -26,23 +28,14 @@ export async function POST() {
     return NextResponse.json({ error: "No active space" }, { status: 403 });
   }
 
-  // Rate limit: removed for testing
-  /*
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-
-  const { count } = await supabase
-    .from("capture_events")
-    .select("id", { count: "exact", head: true })
-    .eq("space_id", spaceId)
-    .gte("created_at", oneHourAgo);
-
-  if (count !== null && count > 0) {
+  // Rate limit: max 1 capture per hour per user (via notification_log)
+  const isAllowed = await checkRateLimit(user.id, 'capture_ping', 60, adminClient);
+  if (!isAllowed) {
     return NextResponse.json(
       { error: "A capture was already initiated in the last hour" },
       { status: 429 }
     );
   }
-  */
 
   // Create capture event with 60-second window
   const expiresAt = new Date(Date.now() + 60_000).toISOString();
@@ -64,7 +57,18 @@ export async function POST() {
     );
   }
 
-  // TODO: Phase 12 — send push notification to partner
+  // Phase 12 — send push notification to partner
+  const space = spaces[0];
+  const partnerId = space.users?.find((id: string) => id !== user.id);
+  if (partnerId) {
+    supabase.functions.invoke('event-notifications', {
+      body: {
+        userId: partnerId,
+        type: 'capture_ping',
+        data: {}
+      }
+    }).catch(e => console.error("Push notification trigger failed", e));
+  }
 
   return NextResponse.json(
     {

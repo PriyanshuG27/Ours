@@ -6,7 +6,9 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Ours",
     description: "A private space for just us two.",
     start_url: "/",
+    scope: "/",
     display: "standalone",
+    orientation: "portrait",
     background_color: "#000000",
     theme_color: "#000000",
     icons: [
@@ -19,6 +21,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/icons/icon-512x512.png",
         sizes: "512x512",
         type: "image/png",
+        purpose: "maskable",
       },
     ],
   };

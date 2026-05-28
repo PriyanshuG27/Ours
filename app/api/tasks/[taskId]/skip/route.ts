@@ -133,6 +133,18 @@ export async function POST(
           taskTitle: task.title,
         },
       });
+    } else {
+      // Notify partner of the skip request
+      const partnerId = space.users.find((id: string) => id !== user.id);
+      if (partnerId) {
+        supabase.functions.invoke('event-notifications', {
+          body: {
+            userId: partnerId,
+            type: 'streak_skip_request',
+            data: {}
+          }
+        }).catch(e => console.error("Push notification trigger failed", e));
+      }
     }
 
     return NextResponse.json({ skipRequestId: skipRequest.id, status }, { status: 201 });
