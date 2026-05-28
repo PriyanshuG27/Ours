@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -817,6 +817,82 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tasks_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_stats: {
+        Row: {
+          captures_count: number | null
+          focus_minutes: number | null
+          id: string
+          photos_count: number | null
+          rules_broken_count: number | null
+          space_id: string
+          tasks_done_count: number | null
+          watch_sessions_count: number | null
+          week_start: string
+        }
+        Insert: {
+          captures_count?: number | null
+          focus_minutes?: number | null
+          id?: string
+          photos_count?: number | null
+          rules_broken_count?: number | null
+          space_id: string
+          tasks_done_count?: number | null
+          watch_sessions_count?: number | null
+          week_start: string
+        }
+        Update: {
+          captures_count?: number | null
+          focus_minutes?: number | null
+          id?: string
+          photos_count?: number | null
+          rules_broken_count?: number | null
+          space_id?: string
+          tasks_done_count?: number | null
+          watch_sessions_count?: number | null
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_stats_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newspaper_archives: {
+        Row: {
+          id: string
+          encrypted_html_snapshot: string
+          published_date: string
+          space_id: string
+          stats_snapshot: Json
+        }
+        Insert: {
+          id?: string
+          encrypted_html_snapshot: string
+          published_date: string
+          space_id: string
+          stats_snapshot: Json
+        }
+        Update: {
+          id?: string
+          encrypted_html_snapshot?: string
+          published_date?: string
+          space_id?: string
+          stats_snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newspaper_archives_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"

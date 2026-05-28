@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Rss, MonitorPlay, LayoutGrid, Focus, Flame, BookOpen, ImagePlus, MapPinned, Languages } from 'lucide-react'
+import { Rss, MonitorPlay, LayoutGrid, Focus, Flame, BookOpen, ImagePlus, MapPinned, Languages, Newspaper } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSpaceStore } from '@/store/space.store'
@@ -79,6 +79,13 @@ const baseCards: NavCard[] = [
     href: '/dictionary',
     accent: 'bg-indigo-500/10 text-indigo-400',
     description: 'Our language',
+  },
+  {
+    label: 'Newspaper',
+    icon: Newspaper,
+    href: '/newspaper',
+    accent: 'bg-slate-500/10 text-slate-400',
+    description: 'Sunday digest',
   },
 ]
 
