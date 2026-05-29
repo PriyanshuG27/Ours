@@ -132,8 +132,7 @@ export function BoardCard({ card, onDelete, onUpdate }: BoardCardProps) {
       } else {
         onUpdate(card.id, { encrypted_partner_perspective: ciphertext });
       }
-    } catch (error) {
-    } finally {
+    } catch {} finally {
       setIsSavingPerspective(false);
     }
   };

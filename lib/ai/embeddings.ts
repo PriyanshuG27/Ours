@@ -40,7 +40,7 @@ export function warmupModel(): void {
 }
 
 /** Subscribe to progress updates from the worker (e.g. "Loading AI model…"). */
-export function onProgress(callback: (status: string) => void): () => void {
+export function onProgress(callback: (_status: string) => void): () => void {
   const w = getWorker();
   const handler = (event: MessageEvent<WorkerResponse>) => {
     if (event.data.type === "progress") {

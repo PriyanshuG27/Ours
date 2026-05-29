@@ -47,8 +47,7 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
         )
         setMedia(resolvedMedia)
       }
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setLoading(false)
     }
   }, [itemId])
@@ -88,8 +87,7 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
       })
       setLinkInput('')
       fetchMedia()
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const startRecording = async () => {
@@ -175,8 +173,7 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
     try {
       await fetch(`/api/bucket/${itemId}/media/${mediaId}`, { method: 'DELETE' })
       fetchMedia()
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const formatTime = (seconds: number) => {

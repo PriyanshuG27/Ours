@@ -22,8 +22,7 @@ export function HomeContent() {
           const data = await res.json()
           setLogs(data.logs || [])
         }
-      } catch (err) {
-      }
+      } catch {}
     }
     
     if (isLoaded) {

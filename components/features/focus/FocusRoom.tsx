@@ -183,8 +183,7 @@ function FocusContent() {
           sessionId: sessionIdValue,
         }),
       });
-    } catch (err) {
-    }
+    } catch {}
   }, [sessionStartTime, focusState, endSession]);
 
   // ── COMPLETE VIEW ─────────────────────────────────────────────────

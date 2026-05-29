@@ -16,7 +16,7 @@ export interface DecryptedRule {
 interface RuleCardProps {
   rule: DecryptedRule
   isAuthor: boolean
-  onStatusChange: (newStatus: 'active' | 'retired') => void
+  onStatusChange: (_newStatus: 'active' | 'retired') => void
   onChargeClick: () => void
 }
 

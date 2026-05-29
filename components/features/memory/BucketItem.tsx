@@ -137,8 +137,7 @@ export function BucketItem({
           setDecryptedNoteB('[encrypted]')
         }
       }
-    } catch (err) {
-    }
+    } catch {}
   }, [item.id, item.status, completionA, completionB, decrypt, isLoaded])
 
   useEffect(() => {
@@ -213,8 +212,7 @@ export function BucketItem({
         return
       }
       setShowCompleteModal(true)
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const polaroidRef = useRef<HTMLDivElement>(null)
@@ -232,8 +230,7 @@ export function BucketItem({
       link.href = url
       link.download = `bucket-${decryptedTitle.replace(/\s+/g, '-').toLowerCase()}.png`
       link.click()
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const isHyped = item.hype_votes?.includes(currentUserId)
@@ -250,8 +247,7 @@ export function BucketItem({
         body: JSON.stringify({ hype_votes: newVotes }),
       })
       onUpdate()
-    } catch (err) {
-    }
+    } catch {}
   }
 
   return (

@@ -63,8 +63,7 @@ export function FeedList({ refreshKey }: FeedListProps) {
                 return [fullEvent, ...prev]
               })
             }
-          } catch (err) {
-          }
+          } catch {}
         }
       )
       .subscribe()

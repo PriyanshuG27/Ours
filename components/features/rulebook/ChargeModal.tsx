@@ -6,7 +6,7 @@ import { DecryptedRule } from './RuleCard'
 interface ChargeModalProps {
   rule: DecryptedRule
   onClose: () => void
-  onCharge: (note: string) => Promise<void>
+  onCharge: (_note: string) => Promise<void>
 }
 
 export function ChargeModal({ rule, onClose, onCharge }: ChargeModalProps) {

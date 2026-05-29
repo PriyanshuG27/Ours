@@ -3,7 +3,7 @@
 import { MoodTag } from "@/types/app.types";
 
 type MoodPickerProps = {
-  onSelect: (mood: MoodTag) => void;
+  onSelect: (_mood: MoodTag) => void;
   onCancel: () => void;
 };
 

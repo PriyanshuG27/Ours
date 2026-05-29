@@ -42,8 +42,7 @@ export function usePush() {
         setIsSubscribed(true);
         setSubscription(sub);
       }
-    } catch (error) {
-    }
+    } catch {}
   };
 
   const requestPermission = async () => {
@@ -99,8 +98,7 @@ export function usePush() {
       
       setIsSubscribed(false);
       setSubscription(null);
-    } catch (error) {
-    }
+    } catch {}
   };
 
   return { isSupported, isSubscribed, requestPermission, unsubscribe };

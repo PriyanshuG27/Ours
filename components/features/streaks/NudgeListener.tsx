@@ -2,7 +2,7 @@
 
 import { useEventListener } from '@/lib/liveblocks/config'
 import { BellRing } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export function NudgeListener() {
   const [toast, setToast] = useState<string | null>(null)

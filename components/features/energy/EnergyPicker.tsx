@@ -40,8 +40,7 @@ export function EnergyPicker({ period, onSubmit }: EnergyPickerProps) {
             setCurrentLevel(level);
           }
         }
-      } catch (err) {
-      } finally {
+      } catch {} finally {
         if (isMounted) setIsLoading(false);
       }
     }

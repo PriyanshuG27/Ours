@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       board_card_messages: {
@@ -348,6 +323,7 @@ export type Database = {
         Row: {
           author_id: string
           created_at: string
+          delete_requested_by: string | null
           encrypted_meaning: string
           encrypted_origin: string | null
           encrypted_word: string
@@ -357,6 +333,7 @@ export type Database = {
         Insert: {
           author_id: string
           created_at?: string
+          delete_requested_by?: string | null
           encrypted_meaning: string
           encrypted_origin?: string | null
           encrypted_word: string
@@ -366,6 +343,7 @@ export type Database = {
         Update: {
           author_id?: string
           created_at?: string
+          delete_requested_by?: string | null
           encrypted_meaning?: string
           encrypted_origin?: string | null
           encrypted_word?: string
@@ -552,6 +530,80 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      newspaper_archives: {
+        Row: {
+          encrypted_html_snapshot: string
+          id: string
+          published_date: string
+          space_id: string
+          stats_snapshot: Json
+        }
+        Insert: {
+          encrypted_html_snapshot: string
+          id?: string
+          published_date: string
+          space_id: string
+          stats_snapshot: Json
+        }
+        Update: {
+          encrypted_html_snapshot?: string
+          id?: string
+          published_date?: string
+          space_id?: string
+          stats_snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newspaper_archives_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_log: {
+        Row: {
+          id: string
+          sent_at: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          sent_at?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          sent_at?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string | null
+          id: string
+          subscription: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          subscription: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          subscription?: Json
+          user_id?: string
+        }
+        Relationships: []
       }
       question_responses: {
         Row: {
@@ -871,80 +923,6 @@ export type Database = {
           },
         ]
       }
-      newspaper_archives: {
-        Row: {
-          id: string
-          encrypted_html_snapshot: string
-          published_date: string
-          space_id: string
-          stats_snapshot: Json
-        }
-        Insert: {
-          id?: string
-          encrypted_html_snapshot: string
-          published_date: string
-          space_id: string
-          stats_snapshot: Json
-        }
-        Update: {
-          id?: string
-          encrypted_html_snapshot?: string
-          published_date?: string
-          space_id?: string
-          stats_snapshot?: Json
-        }
-        Relationships: [
-          {
-            foreignKeyName: "newspaper_archives_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "spaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      push_subscriptions: {
-        Row: {
-          id: string
-          user_id: string
-          subscription: Json
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          subscription: Json
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          subscription?: Json
-          created_at?: string | null
-        }
-        Relationships: []
-      }
-      notification_log: {
-        Row: {
-          id: string
-          user_id: string
-          type: string
-          sent_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          type: string
-          sent_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          type?: string
-          sent_at?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -1097,9 +1075,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       board_column_enum: ["on_my_mind", "lets_talk", "resolved"],

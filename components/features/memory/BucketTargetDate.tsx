@@ -31,8 +31,7 @@ export function BucketTargetDate({
         body: JSON.stringify({ target_date: newDate ? new Date(newDate).toISOString() : null }),
       })
       onUpdate()
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setUpdating(false)
     }
   }

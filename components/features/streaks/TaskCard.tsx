@@ -147,8 +147,7 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
         const errorData = await res.json();
         alert(errorData.error || "Failed to complete task");
       }
-    } catch (e) {
-    } finally {
+    } catch {} finally {
       setLoading(false);
     }
   };
@@ -174,8 +173,7 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
         const errorData = await res.json();
         alert(errorData.error || "Failed to request skip");
       }
-    } catch (e) {
-    } finally {
+    } catch {} finally {
       setLoading(false);
     }
   };
@@ -198,8 +196,7 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
         const errorData = await res.json();
         alert(errorData.error || "Failed to respond");
       }
-    } catch (e) {
-    } finally {
+    } catch {} finally {
       setLoading(false);
     }
   };

@@ -81,8 +81,7 @@ export function BucketList() {
       setDecryptedWhys(whyMap)
       setDecryptedTitles(titleMap)
       setDecryptedCategories(catMap)
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setIsLoading(false)
     }
   }, [decrypt])
@@ -146,8 +145,7 @@ export function BucketList() {
       setWhy('')
       setCategory('')
       await fetchItems()
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setIsSubmitting(false)
     }
   }

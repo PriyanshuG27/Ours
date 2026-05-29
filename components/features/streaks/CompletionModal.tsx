@@ -7,7 +7,7 @@ import imageCompression from "browser-image-compression";
 import { useE2EEKey } from "@/hooks/use-e2ee-key";
 
 type CompletionModalProps = {
-  onComplete: (mood: MoodTag, file: Blob | null) => void;
+  onComplete: (_mood: MoodTag, _file: Blob | null) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 };

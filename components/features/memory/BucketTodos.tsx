@@ -41,8 +41,7 @@ export function BucketTodos({ itemId }: { itemId: string }) {
         })
       )
       setTodos(decryptedTodos)
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setLoading(false)
     }
   }, [itemId, decrypt])
@@ -88,8 +87,7 @@ export function BucketTodos({ itemId }: { itemId: string }) {
         body: JSON.stringify({ encryptedText }),
       })
       await fetchTodos()
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const toggleTodo = async (todo: DecryptedTodo) => {

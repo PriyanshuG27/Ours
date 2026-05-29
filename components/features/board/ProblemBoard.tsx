@@ -48,22 +48,19 @@ export function ProblemBoard() {
             if (c.encrypted_text) {
               decryptedText = await decrypt(c.encrypted_text);
             }
-          } catch (e) {
-          }
+          } catch {}
 
           try {
             if (c.encrypted_author_perspective) {
               decryptedAuthorPerspective = await decrypt(c.encrypted_author_perspective);
             }
-          } catch (e) {
-          }
+          } catch {}
 
           try {
             if (c.encrypted_partner_perspective) {
               decryptedPartnerPerspective = await decrypt(c.encrypted_partner_perspective);
             }
-          } catch (e) {
-          }
+          } catch {}
 
           return {
             ...c,

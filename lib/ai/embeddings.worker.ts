@@ -67,8 +67,8 @@ async function getEmbedding(text: string): Promise<number[]> {
 
 // Worker global scope type (DOM lib doesn't include worker types)
 interface WorkerGlobalScope {
-  onmessage: ((event: MessageEvent<IncomingMessage>) => void) | null;
-  postMessage(message: OutgoingMessage): void;
+  onmessage: ((_event: MessageEvent<IncomingMessage>) => void) | null;
+  postMessage(_message: OutgoingMessage): void;
 }
 
 const ctx = self as unknown as WorkerGlobalScope;

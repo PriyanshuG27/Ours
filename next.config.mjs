@@ -1,5 +1,5 @@
 import withPWAInit from "@ducanh2912/next-pwa";
-
+import { withSentryConfig } from "@sentry/nextjs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -25,13 +25,6 @@ const nextConfig = {
     config.resolve.fallback = { fs: false, path: false, crypto: false };
 
     // Force libsodium-wrappers to resolve to its CJS build.
-    // The ESM build (`dist/modules-esm/libsodium-wrappers.mjs`) has a
-    // relative import `./libsodium.mjs` that breaks under pnpm's strict
-    // node_modules isolation because the core `libsodium` package lives
-    // in a separate `.pnpm` directory.
-    //
-    // This alias forces BOTH client and server webpack builds to use the
-    // working CJS bundle instead.
     config.resolve.alias = {
       ...config.resolve.alias,
       "libsodium-wrappers": path.resolve(
@@ -40,9 +33,6 @@ const nextConfig = {
       ),
     };
 
-    // On the server, Next.js may resolve package.json "exports" with
-    // the "import" condition first (picking the broken ESM entry).
-    // Override conditionNames so "require" (CJS) is tried first.
     if (isServer) {
       config.resolve.conditionNames = ["require", "node", "default"];
     }
@@ -51,4 +41,31 @@ const nextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+const sentryConfig = {
+  // Source map upload — only active when SENTRY_AUTH_TOKEN is set in CI/Vercel
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Do NOT send source maps in local dev (no token, no org)
+  silent: !process.env.CI,
+
+  // Disable telemetry back to Sentry about the SDK itself
+  telemetry: false,
+
+  // Do NOT widen bundle — tree-shake Sentry
+  widenClientFileUpload: false,
+
+  // Hide Sentry source map upload logs unless CI
+  hideSourceMaps: true,
+
+  // Disable automatic instrumentation of Next.js API routes
+  // We call Sentry.captureException() explicitly where needed
+  webpack: {
+    autoInstrumentServerFunctions: false,
+    autoInstrumentMiddleware: false,
+    autoInstrumentAppDirectory: false,
+  }
+};
+
+export default withSentryConfig(withPWA(nextConfig), sentryConfig);

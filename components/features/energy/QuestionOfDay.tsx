@@ -60,8 +60,7 @@ export function QuestionOfDay() {
       } else {
         setStatus("unanswered");
       }
-    } catch (err) {
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -102,8 +101,7 @@ export function QuestionOfDay() {
         setDraft("");
         setStatus("waiting"); // This will trigger the polling useEffect
       }
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setIsSubmitting(false);
     }
   };

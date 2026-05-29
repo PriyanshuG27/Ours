@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useE2EEKey } from '@/hooks/use-e2ee-key';
 import { supabase } from '@/lib/supabase/client';
 import { renderNewspaper, NewspaperData } from '@/lib/newspaper/template';
@@ -19,11 +19,13 @@ export function NewspaperViewer() {
   const { encrypt, decrypt, key, isLoaded } = useE2EEKey();
   const newspaperRef = useRef<HTMLDivElement>(null);
 
-  // Time logic
-  const today = new Date();
-  const day = today.getDay(); // 0 = Sunday
-  const hour = today.getHours();
-  const isPrintingWindow = day === 0 && hour >= 8;
+  // Time logic — memoized so they're stable for useEffect deps
+  const { today, day, isPrintingWindow } = useMemo(() => {
+    const now = new Date();
+    const d = now.getDay();
+    const h = now.getHours();
+    return { today: now, day: d, isPrintingWindow: d === 0 && h >= 8 };
+  }, []);
 
   // Load archives list
   useEffect(() => {
@@ -42,7 +44,7 @@ export function NewspaperViewer() {
       }
     };
     fetchArchives();
-  }, []); // Only run once on mount, removing supabase from dep array avoids loops
+  }, [isPrintingWindow]); // Only run once on mount
 
   // Load selected content
   useEffect(() => {
@@ -147,7 +149,7 @@ export function NewspaperViewer() {
     };
 
     loadContent();
-  }, [selectedArchive, archives, key, isLoaded, encrypt, decrypt]);
+  }, [selectedArchive, archives, key, isLoaded, encrypt, decrypt, isPrintingWindow, today, day]);
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -157,8 +159,7 @@ export function NewspaperViewer() {
           text: 'Check out our relationship newspaper!',
           url: window.location.href,
         });
-      } catch (err) {
-      }
+      } catch {}
     } else {
       navigator.clipboard.writeText(window.location.href);
       alert('Link copied to clipboard!');

@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useSpaceStore } from '@/store/space.store'
 import { useE2EEKey } from '@/hooks/use-e2ee-key'
-import { encryptPayload, decryptPayload } from '@/lib/crypto/e2ee'
 import { RuleCard, DecryptedRule } from './RuleCard'
 import { LedgerEntry, DecryptedLedgerEntry } from './LedgerEntry'
 import { ChargeModal } from './ChargeModal'
-import { Plus, Trophy, Flame, AlertCircle, Scale, ShieldAlert } from 'lucide-react'
+import { Plus, Trophy, Flame, Scale, ShieldAlert } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 export function RulebookView() {
@@ -67,8 +66,7 @@ export function RulebookView() {
 
         setRules(decryptedRules)
         setEntries(decryptedEntries)
-      } catch (err) {
-      } finally {
+      } catch {} finally {
         if (!isBackground) setIsLoading(false)
       }
     }
@@ -109,8 +107,7 @@ export function RulebookView() {
         setNewPenaltyText('')
         setCategory('Household')
       }
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setIsSubmitting(false)
     }
   }
@@ -128,8 +125,7 @@ export function RulebookView() {
           r.id === ruleId ? { ...r, status: newStatus } : r
         ).filter(r => r.status !== 'retired'))
       }
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const handleCharge = async (note: string) => {
@@ -174,8 +170,7 @@ export function RulebookView() {
       if (res.ok) {
         setEntries(prev => prev.map(e => e.id === entryId ? { ...e, is_settled: true, settled_at: new Date().toISOString() } : e))
       }
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const handleForgiveRequest = async (entryId: string) => {
@@ -184,8 +179,7 @@ export function RulebookView() {
       if (res.ok) {
         setEntries(prev => prev.map(e => e.id === entryId ? { ...e, forgiveness_requested: true } : e))
       }
-    } catch (err) {
-    }
+    } catch {}
   }
 
   const handleVeto = async (entryId: string) => {
@@ -200,8 +194,7 @@ export function RulebookView() {
       if (res.ok) {
         setEntries(prev => prev.map(e => e.id === entryId ? { ...e, is_settled: true, is_vetoed: true, settled_at: new Date().toISOString() } : e))
       }
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setIsBurningToken(false)
     }
   }

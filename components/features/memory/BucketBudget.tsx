@@ -58,8 +58,7 @@ export function BucketBudget({
         body: JSON.stringify(payload),
       })
       onUpdate()
-    } catch (err) {
-    } finally {
+    } catch {} finally {
       setUpdating(false)
     }
   }
