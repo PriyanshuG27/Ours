@@ -22,11 +22,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: spaceData, error: spaceError } = await supabase
+    const { data: spaces, error: spaceError } = await supabase
       .from("spaces")
       .select("id, users")
-      .contains("users", [user.id])
-      .single();
+      .eq("is_active", true)
+      .limit(1);
+
+    const spaceData = spaces?.[0];
 
     if (spaceError || !spaceData) {
       return NextResponse.json(
@@ -69,10 +71,13 @@ export async function GET(request: Request) {
     }
 
     if (!question) {
-      return NextResponse.json(
-        { error: "Question not found" },
-        { status: 404 }
-      );
+      // Return 200 with null question instead of 404 to avoid console spam
+      return NextResponse.json({
+        question: null,
+        hasUserAnswered: false,
+        hasPartnerAnswered: false,
+        answers: null,
+      });
     }
 
     // 3. Get responses for today

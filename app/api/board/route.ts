@@ -14,7 +14,7 @@ export async function GET() {
   const { data: spaces } = await supabase
     .from("spaces")
     .select("id")
-    .contains("users", [user.id])
+
     .eq("is_active", true)
     .limit(1);
 
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   const { data: spaces } = await supabase
     .from("spaces")
     .select("id")
-    .contains("users", [user.id])
+
     .eq("is_active", true)
     .limit(1);
 

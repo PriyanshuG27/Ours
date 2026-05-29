@@ -16,11 +16,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid level or period" }, { status: 400 });
     }
 
-    const { data: spaceData, error: spaceError } = await supabase
+    const { data: spaces, error: spaceError } = await supabase
       .from("spaces")
       .select("id")
-      .contains("users", [user.id])
-      .single();
+      .eq("is_active", true)
+      .limit(1);
+
+    const spaceData = spaces?.[0];
 
     if (spaceError || !spaceData) {
       return NextResponse.json({ error: "No active space found" }, { status: 404 });
@@ -81,11 +83,13 @@ export async function GET(request: Request) {
     if (isNaN(days) || days < 1) days = 7;
     if (days > 30) days = 30;
 
-    const { data: spaceData, error: spaceError } = await supabase
+    const { data: spaces, error: spaceError } = await supabase
       .from("spaces")
       .select("id")
-      .contains("users", [user.id])
-      .single();
+      .eq("is_active", true)
+      .limit(1);
+
+    const spaceData = spaces?.[0];
 
     if (spaceError || !spaceData) {
       return NextResponse.json({ error: "No active space found" }, { status: 404 });

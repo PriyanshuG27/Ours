@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const { data: space } = await supabase
     .from("spaces")
     .select("id")
-    .contains("users", [user.id])
+
     .eq("is_active", true)
     .single();
 
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   const { data: space } = await supabase
     .from("spaces")
     .select("id")
-    .contains("users", [user.id])
+
     .eq("is_active", true)
     .single();
 
