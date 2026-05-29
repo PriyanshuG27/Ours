@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ours — A Private Space For Two
 
-## Getting Started
+A highly advanced, feature-rich private social space for two people. This app features real-time multiplayer syncing, end-to-end encryption, AI-generated daily questions, and a fully functional progressive web app (PWA) architecture.
 
-First, run the development server:
+## 🚀 Features
+- **Real-Time Multiplayer:** Built with Liveblocks and Supabase Realtime for instant synchronization.
+- **End-to-End Encryption (E2EE):** Private notes, dictionary entries, and board cards are encrypted client-side using `libsodium` before they ever touch the database.
+- **AI-Powered Prompts:** Uses Google's Gemini API in Edge Functions to generate daily personalized questions.
+- **Web Push Notifications:** Fully integrated Service Workers with VAPID keys for native push notifications.
 
+---
+
+## 💻 Local Setup Guide
+
+Follow these steps to run the app entirely on your local machine.
+
+### 1. Prerequisites
+- **Node.js** (v18 or higher)
+- **pnpm** installed globally (`npm install -g pnpm`)
+- **Docker Desktop** (required to run the local Supabase database)
+
+### 2. Clone the Repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/ours.git
+cd ours
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Install Dependencies
+```bash
+pnpm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Setup Environment Variables
+Copy the example environment file:
+```bash
+cp .env.example .env.local
+```
+Ask the project owner for the `.env.local` values. You will need keys for Supabase, Liveblocks, Gemini, and VAPID.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 5. Start the Database (Two Options)
 
-## Learn More
+**Option A: Cloud Database (Easiest - No Docker Required)**
+If the project owner provided you with `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` that point to a cloud hosted Supabase project, you can skip this step entirely! Just proceed to step 6.
 
-To learn more about Next.js, take a look at the following resources:
+**Option B: Local Database (Requires Docker)**
+If you want to run a completely isolated local database instead of using the cloud one, ensure Docker Desktop is running and execute:
+```bash
+npx supabase start
+```
+*Copy the `API URL` and `anon key` from the terminal output and paste them into your `.env.local` file as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 6. Start the Development Server
+```bash
+pnpm dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser. 
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Testing Locally
+Because this app is designed for two people, the best way to test it locally is to open **two different browsers** (e.g., Chrome and Firefox) or one normal window and one Incognito window.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Sign up on Browser A and create a space.
+2. Copy the Invite Code.
+3. Sign up on Browser B and join the space using the code.
+4. You can now test the real-time features side-by-side!
