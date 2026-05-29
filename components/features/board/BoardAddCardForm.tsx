@@ -31,7 +31,6 @@ export function BoardAddCardForm({ column, onAddCard, onCancel }: BoardAddCardFo
       // Wait, onCancel closes the form. We should call onCancel to close it after success.
       onCancel();
     } catch (error) {
-      console.error("Failed to add card:", error);
     } finally {
       setIsSubmitting(false);
     }

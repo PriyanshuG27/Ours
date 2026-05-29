@@ -4,7 +4,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 
 export async function POST() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -67,7 +67,7 @@ export async function POST() {
         type: 'capture_ping',
         data: {}
       }
-    }).catch(e => console.error("Push notification trigger failed", e));
+    }).catch(() => {});
   }
 
   return NextResponse.json(

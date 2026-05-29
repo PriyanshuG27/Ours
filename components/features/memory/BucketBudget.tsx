@@ -59,7 +59,6 @@ export function BucketBudget({
       })
       onUpdate()
     } catch (err) {
-      console.error(err)
     } finally {
       setUpdating(false)
     }

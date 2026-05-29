@@ -105,7 +105,7 @@ export function QuickNav() {
           setUnsettledCount(data.entries.length)
         }
       })
-      .catch(console.error)
+      .catch(() => {})
   }, [isLoaded])
 
   return (

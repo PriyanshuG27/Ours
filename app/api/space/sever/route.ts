@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/server'
  * Data is retained for 30 days before hard deletion via cleanup_severed_spaces().
  */
 export async function POST() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },
@@ -49,7 +49,6 @@ export async function POST() {
     .eq('id', spaceId)
 
   if (updateError) {
-    console.error('[sever] Failed to sever space:', updateError)
     return NextResponse.json(
       { error: 'Failed to sever space' },
       { status: 500 }

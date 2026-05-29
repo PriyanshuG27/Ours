@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -70,7 +70,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("POST /api/focus/complete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

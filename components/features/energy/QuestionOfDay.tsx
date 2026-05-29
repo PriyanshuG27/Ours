@@ -61,7 +61,6 @@ export function QuestionOfDay() {
         setStatus("unanswered");
       }
     } catch (err) {
-      console.error("Failed to load question of the day", err);
     }
   };
 
@@ -104,7 +103,6 @@ export function QuestionOfDay() {
         setStatus("waiting"); // This will trigger the polling useEffect
       }
     } catch (err) {
-      console.error("Submit failed", err);
     } finally {
       setIsSubmitting(false);
     }

@@ -32,7 +32,6 @@ export function BucketTargetDate({
       })
       onUpdate()
     } catch (err) {
-      console.error(err)
     } finally {
       setUpdating(false)
     }

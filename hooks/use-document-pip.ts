@@ -77,7 +77,6 @@ export function useDocumentPip() {
 
       return pip;
     } catch (err) {
-      console.error("Document PiP request failed:", err);
       return null;
     }
   }, []);

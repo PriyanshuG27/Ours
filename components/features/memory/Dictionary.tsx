@@ -14,6 +14,7 @@ interface DecryptedEntry {
   origin: string | null
   author_id: string
   created_at: string
+  delete_requested_by?: string | null
 }
 
 export function Dictionary() {
@@ -78,6 +79,7 @@ export function Dictionary() {
             origin,
             author_id: entry.author_id,
             created_at: entry.created_at,
+            delete_requested_by: entry.delete_requested_by,
           }
         })
       )
@@ -190,7 +192,23 @@ export function Dictionary() {
     }
   }
 
-  async function handleDelete(entryId: string) {
+  async function handleRequestDelete(entryId: string) {
+    setDeleting(entryId)
+    try {
+      const res = await fetch(`/api/dictionary/${entryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'request' })
+      })
+      if (res.ok) {
+        await fetchEntries();
+      }
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  async function handleApproveDelete(entryId: string) {
     setDeleting(entryId)
     try {
       const res = await fetch(`/api/dictionary/${entryId}`, {
@@ -199,6 +217,22 @@ export function Dictionary() {
       if (res.ok) {
         setEntries((prev) => prev.filter((e) => e.id !== entryId))
         setRawEntries((prev) => prev.filter((e) => e.id !== entryId))
+      }
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  async function handleRejectDelete(entryId: string) {
+    setDeleting(entryId)
+    try {
+      const res = await fetch(`/api/dictionary/${entryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject' })
+      })
+      if (res.ok) {
+        await fetchEntries();
       }
     } finally {
       setDeleting(null)
@@ -384,15 +418,52 @@ export function Dictionary() {
                     </span>
                   </div>
 
-                  {/* Delete button */}
-                  <button
-                    onClick={() => handleDelete(entry.id)}
-                    disabled={deleting === entry.id}
-                    className="shrink-0 rounded-lg p-1.5 text-neutral-700 opacity-0 transition-all group-hover:opacity-100 hover:text-red-400 disabled:opacity-50"
-                    aria-label={`Delete ${entry.word}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {/* Actions */}
+                  {entry.delete_requested_by ? (
+                    entry.delete_requested_by === userId ? (
+                      <button
+                        onClick={() => handleRejectDelete(entry.id)}
+                        disabled={deleting === entry.id}
+                        className="shrink-0 flex items-center bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20 hover:bg-orange-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+                        title="Cancel delete request"
+                      >
+                        <span className="text-[10px] font-medium text-orange-400">
+                          Cancel request...
+                        </span>
+                      </button>
+                    ) : (
+                      <div className="shrink-0 flex flex-col items-end gap-2 bg-red-500/10 p-2 rounded-xl border border-red-500/20">
+                        <span className="text-[10px] font-medium text-red-400">
+                          Partner wants to delete
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleRejectDelete(entry.id)}
+                            disabled={deleting === entry.id}
+                            className="px-2 py-1 bg-neutral-800 text-[10px] font-medium text-neutral-300 rounded hover:bg-neutral-700 transition-colors disabled:opacity-50"
+                          >
+                            Reject
+                          </button>
+                          <button
+                            onClick={() => handleApproveDelete(entry.id)}
+                            disabled={deleting === entry.id}
+                            className="px-2 py-1 bg-red-500 text-[10px] font-bold text-white rounded hover:bg-red-400 transition-colors disabled:opacity-50"
+                          >
+                            Approve
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <button
+                      onClick={() => handleRequestDelete(entry.id)}
+                      disabled={deleting === entry.id}
+                      className="shrink-0 rounded-lg p-1.5 text-neutral-700 opacity-0 transition-all group-hover:opacity-100 hover:text-red-400 disabled:opacity-50"
+                      aria-label={`Delete ${entry.word}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </article>
             ))}

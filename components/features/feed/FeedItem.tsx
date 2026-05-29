@@ -54,6 +54,11 @@ export function FeedItem({ event }: FeedItemProps) {
   const { userId, partnerName } = useSpace()
   const { decrypt } = useE2EEKey()
   const [isPinned, setIsPinned] = useState(event.is_pinned)
+  
+  useEffect(() => {
+    setIsPinned(event.is_pinned);
+  }, [event.is_pinned]);
+
   const [pinLoading, setPinLoading] = useState(false)
   const [isFlagging, setIsFlagging] = useState(false)
   const [isFlagged, setIsFlagged] = useState(event.metadata?.isFlagged === true)

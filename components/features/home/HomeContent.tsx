@@ -23,7 +23,6 @@ export function HomeContent() {
           setLogs(data.logs || [])
         }
       } catch (err) {
-        console.error(err)
       }
     }
     
@@ -45,7 +44,7 @@ export function HomeContent() {
     fetch('/api/energy?days=7')
       .then(res => res.json())
       .then(data => setLogs(data.logs || []))
-      .catch(console.error)
+      .catch(() => {})
   }
 
   return (

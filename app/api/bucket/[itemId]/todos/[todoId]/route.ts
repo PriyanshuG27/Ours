@@ -5,9 +5,10 @@ import { Database } from "@/types/database.types";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { itemId: string; todoId: string } }
+  props: { params: Promise<{ itemId: string; todoId: string }> }
 ) {
-  const supabase = createClient();
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
@@ -38,9 +39,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { itemId: string; todoId: string } }
+  props: { params: Promise<{ itemId: string; todoId: string }> }
 ) {
-  const supabase = createClient();
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {

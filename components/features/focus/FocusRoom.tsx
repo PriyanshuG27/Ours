@@ -184,7 +184,6 @@ function FocusContent() {
         }),
       });
     } catch (err) {
-      console.error("Failed to log focus session:", err);
     }
   }, [sessionStartTime, focusState, endSession]);
 

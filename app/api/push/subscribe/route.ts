@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     const { data: userData, error: authError } = await supabase.auth.getUser();
     if (authError || !userData?.user) {
@@ -23,13 +23,11 @@ export async function POST(req: Request) {
       }, { onConflict: 'user_id' });
 
     if (error) {
-      console.error('Failed to save push subscription:', error);
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('Push subscribe error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

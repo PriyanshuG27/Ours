@@ -62,7 +62,6 @@ export function useSpace() {
         // This ensures useE2EEKey can load the key for this space.
         setSpace(space.id as string, user.id, pId ?? '', pName ?? '')
       } catch (err) {
-        console.error('[use-space] load error:', err)
         if (!cancelled) {
           setLoaded()
         }

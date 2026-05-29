@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSpaceStore } from "@/store/space.store";
 import { useE2EEKey } from "@/hooks/use-e2ee-key";
 import { supabase } from "@/lib/supabase/client";
@@ -23,6 +23,7 @@ type DecryptedMessage = BoardCardMessage & {
 
 export function CardChat({ cardId, onResolve }: CardChatProps) {
   const userId = useSpaceStore((s) => s.userId);
+  const spaceId = useSpaceStore((s) => s.spaceId);
   const { encrypt, decrypt } = useE2EEKey();
   const broadcast = useBroadcastEvent();
   
@@ -35,7 +36,7 @@ export function CardChat({ cardId, onResolve }: CardChatProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     const res = await fetch(`/api/board/${cardId}/chat`);
     if (res.ok) {
       const data: BoardCardMessage[] = await res.json();
@@ -54,7 +55,7 @@ export function CardChat({ cardId, onResolve }: CardChatProps) {
                 content = await decrypt(encryptedBase64); // Decrypt the inner base64
               }
             }
-          } catch (e) {
+          } catch {
             content = "Failed to decrypt";
           }
           
@@ -64,11 +65,11 @@ export function CardChat({ cardId, onResolve }: CardChatProps) {
       setMessages(decrypted);
       setTimeout(() => scrollToBottom(), 100);
     }
-  };
+  }, [cardId, decrypt]);
 
   useEffect(() => {
     fetchMessages();
-  }, [cardId]);
+  }, [fetchMessages]);
 
   useEventListener(({ event }) => {
     if (event.type === "BOARD_CHAT_MESSAGE" && event.cardId === cardId) {
@@ -114,14 +115,16 @@ export function CardChat({ cardId, onResolve }: CardChatProps) {
       // Encrypt the base64 string
       const encryptedBase64 = await encrypt(base64);
       
-      const fileName = `${cardId}/${Date.now()}.txt`;
+      const fileName = `${spaceId}/${cardId}-${Date.now()}.txt`;
       const { error } = await supabase.storage.from("board-media").upload(fileName, encryptedBase64);
       
       if (!error) {
         await handleSend("image", fileName);
+      } else {
+        alert("Failed to upload image: " + error.message);
       }
-    } catch (err) {
-      console.error("Image upload failed", err);
+    } catch (err: any) {
+      alert("Error processing image: " + err.message);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

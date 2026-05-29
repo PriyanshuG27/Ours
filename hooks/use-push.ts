@@ -43,7 +43,6 @@ export function usePush() {
         setSubscription(sub);
       }
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
     }
   };
 
@@ -85,7 +84,6 @@ export function usePush() {
       return true;
 
     } catch (error) {
-      console.error('Push registration failed:', error);
       return false;
     }
   };
@@ -102,7 +100,6 @@ export function usePush() {
       setIsSubscribed(false);
       setSubscription(null);
     } catch (error) {
-      console.error('Unsubscribe failed:', error);
     }
   };
 

@@ -3,10 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { MoodTag } from "@/types/app.types";
 import { randomUUID } from "crypto";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { taskId: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ taskId: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient();
     const {
@@ -175,7 +173,6 @@ export async function POST(
       { status: 200 }
     );
   } catch (error: any) {
-    console.error("POST /api/tasks/[taskId]/complete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

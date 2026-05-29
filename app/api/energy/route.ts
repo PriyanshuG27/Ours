@@ -62,7 +62,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {
-    console.error("POST /api/energy error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -108,7 +107,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ logs });
   } catch (error: any) {
-    console.error("GET /api/energy error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

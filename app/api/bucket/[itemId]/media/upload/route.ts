@@ -2,11 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { itemId: string } }
-) {
-  const supabase = createClient();
+export async function POST(request: Request, props: { params: Promise<{ itemId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {

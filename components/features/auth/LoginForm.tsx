@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 
 type AuthMode = "idle" | "email";
@@ -11,6 +12,17 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<AuthStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+
+  // If the browser restores a cached /login page from the back button, 
+  // push them forward if they are actually still logged in.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace("/home");
+      }
+    });
+  }, [router]);
 
   async function handleGoogleLogin() {
     setStatus("loading");

@@ -1,11 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-export async function PATCH(
-  _request: Request,
-  { params }: { params: { eventId: string } }
-) {
-  const supabase = createClient();
+export async function PATCH(_request: Request, props: { params: Promise<{ eventId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
 
   const {
     data: { user },

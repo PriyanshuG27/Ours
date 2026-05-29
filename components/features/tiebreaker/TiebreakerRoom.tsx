@@ -22,7 +22,6 @@ import {
   ArrowLeft,
   Loader2,
   Check,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -131,8 +130,7 @@ function TiebreakerContent() {
         if (cancelled) return;
         setResult(match);
       })
-      .catch((err) => {
-        console.error("findBestMatch error:", err);
+      .catch(() => {
         if (!cancelled) setError("AI matching failed. Try again.");
       })
       .finally(() => {

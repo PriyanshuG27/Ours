@@ -7,7 +7,7 @@ const liveblocks = new Liveblocks({
 });
 
 export async function POST() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // getUser() validates the JWT server-side — getSession() does not
   const {

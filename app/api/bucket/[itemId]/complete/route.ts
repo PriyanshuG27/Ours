@@ -9,11 +9,9 @@ type CompletionPayload = {
   vibe_rating?: number;
 };
 
-export async function POST(
-  request: Request,
-  { params }: { params: { itemId: string } }
-) {
-  const supabase = createClient();
+export async function POST(request: Request, props: { params: Promise<{ itemId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
 
   const {
     data: { user },

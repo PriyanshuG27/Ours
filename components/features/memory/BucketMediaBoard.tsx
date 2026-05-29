@@ -48,7 +48,6 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
         setMedia(resolvedMedia)
       }
     } catch (err) {
-      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -90,7 +89,6 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
       setLinkInput('')
       fetchMedia()
     } catch (err) {
-      console.error(err)
     }
   }
 
@@ -125,7 +123,6 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
       recorder.start()
       setIsRecording(true)
     } catch (err) {
-      console.error('Microphone access denied', err)
       alert('Could not access microphone.')
     }
   }
@@ -161,7 +158,6 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
         finalUrl = URL.createObjectURL(blob)
         setDecryptedAudioCache(prev => ({ ...prev, [id]: finalUrl }))
       } catch (err) {
-        console.error('Failed to decrypt audio', err)
         setPlayingId(null)
         return
       }
@@ -180,7 +176,6 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
       await fetch(`/api/bucket/${itemId}/media/${mediaId}`, { method: 'DELETE' })
       fetchMedia()
     } catch (err) {
-      console.error(err)
     }
   }
 

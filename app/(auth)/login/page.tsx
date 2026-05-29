@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { LoginForm } from "@/components/features/auth/LoginForm";
 
 export default async function LoginPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

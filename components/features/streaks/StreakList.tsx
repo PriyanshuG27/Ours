@@ -76,7 +76,6 @@ export function StreakList() {
         fetchTasks();
       }
     } catch (err) {
-      console.error(err);
     } finally {
       setIsCreating(false);
     }

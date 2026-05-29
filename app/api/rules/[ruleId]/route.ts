@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { ruleId: string } }
-) {
-  const supabase = createClient();
+export async function PATCH(request: NextRequest, props: { params: Promise<{ ruleId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const {
     data: { user },
     error: authError,
@@ -58,11 +56,9 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { ruleId: string } }
-) {
-  const supabase = createClient();
+export async function DELETE(request: NextRequest, props: { params: Promise<{ ruleId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const {
     data: { user },
     error: authError,

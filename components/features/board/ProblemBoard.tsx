@@ -49,7 +49,6 @@ export function ProblemBoard() {
               decryptedText = await decrypt(c.encrypted_text);
             }
           } catch (e) {
-            console.error("Failed to decrypt text for card", c.id, e);
           }
 
           try {
@@ -57,7 +56,6 @@ export function ProblemBoard() {
               decryptedAuthorPerspective = await decrypt(c.encrypted_author_perspective);
             }
           } catch (e) {
-            console.error("Failed to decrypt author perspective", e);
           }
 
           try {
@@ -65,7 +63,6 @@ export function ProblemBoard() {
               decryptedPartnerPerspective = await decrypt(c.encrypted_partner_perspective);
             }
           } catch (e) {
-            console.error("Failed to decrypt partner perspective", e);
           }
 
           return {
@@ -79,7 +76,6 @@ export function ProblemBoard() {
 
       setCards(decryptedCards);
     } catch (error) {
-      console.error("Board fetch error:", error);
       // Removed alert to prevent annoying popups on concurrent React Strict Mode fetches
     } finally {
       setIsLoading(false);
@@ -108,7 +104,6 @@ export function ProblemBoard() {
       
       broadcast({ type: "BOARD_CHANGED", action: "update" });
     } catch (error) {
-      console.error(error);
       setCards(previousCards); // revert
     }
   };
@@ -143,7 +138,6 @@ export function ProblemBoard() {
       
       broadcast({ type: "BOARD_CHANGED", action: "update" });
     } catch (error) {
-      console.error(error);
       fetchCards(); // Revert on failure
     }
   };
@@ -160,7 +154,6 @@ export function ProblemBoard() {
       
       broadcast({ type: "BOARD_CHANGED", action: "delete" });
     } catch (error) {
-      console.error(error);
       setCards(previousCards); // revert
     }
   };
@@ -184,7 +177,6 @@ export function ProblemBoard() {
       
       broadcast({ type: "BOARD_CHANGED", action: "add", moodTag: mood || undefined });
     } catch (error) {
-      console.error(error);
       alert("Failed to add card.");
     }
   };

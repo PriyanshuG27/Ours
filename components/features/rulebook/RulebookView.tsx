@@ -68,7 +68,6 @@ export function RulebookView() {
         setRules(decryptedRules)
         setEntries(decryptedEntries)
       } catch (err) {
-        console.error('Failed to load rulebook data:', err)
       } finally {
         if (!isBackground) setIsLoading(false)
       }
@@ -88,7 +87,7 @@ export function RulebookView() {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [key, userId, isLoaded])
+  }, [key, userId, isLoaded, decrypt])
 
   const handleProposeRule = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -111,7 +110,6 @@ export function RulebookView() {
         setCategory('Household')
       }
     } catch (err) {
-      console.error('Failed to propose rule:', err)
     } finally {
       setIsSubmitting(false)
     }
@@ -131,7 +129,6 @@ export function RulebookView() {
         ).filter(r => r.status !== 'retired'))
       }
     } catch (err) {
-      console.error('Failed to update rule status:', err)
     }
   }
 
@@ -167,7 +164,6 @@ export function RulebookView() {
         setActiveTab('ledger')
       }
     } catch (err) {
-      console.error('Failed to submit charge:', err)
       throw err
     }
   }
@@ -179,7 +175,6 @@ export function RulebookView() {
         setEntries(prev => prev.map(e => e.id === entryId ? { ...e, is_settled: true, settled_at: new Date().toISOString() } : e))
       }
     } catch (err) {
-      console.error('Failed to settle debt:', err)
     }
   }
 
@@ -190,7 +185,6 @@ export function RulebookView() {
         setEntries(prev => prev.map(e => e.id === entryId ? { ...e, forgiveness_requested: true } : e))
       }
     } catch (err) {
-      console.error('Failed to request forgiveness:', err)
     }
   }
 
@@ -207,7 +201,6 @@ export function RulebookView() {
         setEntries(prev => prev.map(e => e.id === entryId ? { ...e, is_settled: true, is_vetoed: true, settled_at: new Date().toISOString() } : e))
       }
     } catch (err) {
-      console.error('Failed to veto debt:', err)
     } finally {
       setIsBurningToken(false)
     }

@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request: {
       headers: request.headers,
@@ -52,6 +52,11 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/auth/callback");
 
   if (isPublicPath) {
+    // If they go back to /login but are already logged in, redirect them forward
+    if (path === "/login" && user) {
+      url.pathname = "/home";
+      return NextResponse.redirect(url);
+    }
     return supabaseResponse;
   }
 

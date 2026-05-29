@@ -2,11 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { Database } from "@/types/database.types";
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { itemId: string } }
-) {
-  const supabase = createClient();
+export async function DELETE(request: Request, props: { params: Promise<{ itemId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -32,11 +30,9 @@ export async function DELETE(
   return NextResponse.json({ ok: true });
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { itemId: string } }
-) {
-  const supabase = createClient();
+export async function PATCH(request: Request, props: { params: Promise<{ itemId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
 
   const {
     data: { user },

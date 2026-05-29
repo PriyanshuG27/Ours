@@ -61,7 +61,6 @@ export function NewspaperViewer() {
             const decryptedHtml = await decrypt(archive.encrypted_html_snapshot);
             setHtml(decryptedHtml);
           } catch (e) {
-            console.error(e);
             setErrorState("Failed to decrypt this archive. The key may have changed.");
           }
         }
@@ -93,7 +92,6 @@ export function NewspaperViewer() {
               qa.answerA = await decrypt(qa.answerA);
               qa.answerB = await decrypt(qa.answerB);
             } catch (e) {
-              console.error("Failed to decrypt Q&A", e);
               qa = null;
             }
           }
@@ -104,7 +102,6 @@ export function NewspaperViewer() {
               dictWord.word = await decrypt(dictWord.word);
               dictWord.meaning = await decrypt(dictWord.meaning);
             } catch (e) {
-              console.error("Failed to decrypt Dictionary Word", e);
               dictWord = null;
             }
           }
@@ -137,13 +134,12 @@ export function NewspaperViewer() {
                   encrypted_html_snapshot: encryptedHtml
                 }, ...prev]);
               }
-            }).catch(e => console.error("Failed to trigger printing process", e));
+            }).catch(() => {});
           }
           
           setHtml(generatedHtml);
 
         } catch (error) {
-          console.error("Failed to fetch live newspaper", error);
           setErrorState("Failed to load the newspaper.");
         }
       }
@@ -162,7 +158,6 @@ export function NewspaperViewer() {
           url: window.location.href,
         });
       } catch (err) {
-        console.error('Share failed', err);
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
@@ -189,7 +184,6 @@ export function NewspaperViewer() {
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error("Failed to export image", err);
       alert("Failed to export image. Please try again.");
     }
   };

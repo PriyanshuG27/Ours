@@ -73,7 +73,6 @@ export function BucketList() {
               const decrypted = await decrypt(item.encrypted_why)
               whyMap.set(item.id, decrypted)
             } catch (e) {
-              console.error('Failed to decrypt why for item', item.id, e)
               whyMap.set(item.id, '[unable to decrypt]')
             }
           }
@@ -83,7 +82,6 @@ export function BucketList() {
       setDecryptedTitles(titleMap)
       setDecryptedCategories(catMap)
     } catch (err) {
-      console.error('Bucket fetch error:', err)
     } finally {
       setIsLoading(false)
     }
@@ -149,7 +147,6 @@ export function BucketList() {
       setCategory('')
       await fetchItems()
     } catch (err) {
-      console.error('Failed to add bucket item:', err)
     } finally {
       setIsSubmitting(false)
     }

@@ -148,7 +148,6 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
         alert(errorData.error || "Failed to complete task");
       }
     } catch (e) {
-      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -176,7 +175,6 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
         alert(errorData.error || "Failed to request skip");
       }
     } catch (e) {
-      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -201,7 +199,6 @@ export function TaskCard({ task, skipRequests, isOwner, currentUserId, onActionC
         alert(errorData.error || "Failed to respond");
       }
     } catch (e) {
-      console.error(e);
     } finally {
       setLoading(false);
     }

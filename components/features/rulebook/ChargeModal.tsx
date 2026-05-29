@@ -22,7 +22,6 @@ export function ChargeModal({ rule, onClose, onCharge }: ChargeModalProps) {
       await onCharge(note)
       onClose()
     } catch (err) {
-      console.error('Failed to charge:', err)
       setIsSubmitting(false)
     }
   }

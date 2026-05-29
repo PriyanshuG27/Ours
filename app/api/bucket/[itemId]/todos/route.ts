@@ -3,11 +3,9 @@ import { NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { itemId: string } }
-) {
-  const supabase = createClient();
+export async function GET(request: Request, props: { params: Promise<{ itemId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
@@ -27,11 +25,9 @@ export async function GET(
   return NextResponse.json({ todos: todos ?? [] });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { itemId: string } }
-) {
-  const supabase = createClient();
+export async function POST(request: Request, props: { params: Promise<{ itemId: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {

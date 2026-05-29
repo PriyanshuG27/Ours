@@ -64,7 +64,6 @@ export function FeedList({ refreshKey }: FeedListProps) {
               })
             }
           } catch (err) {
-            console.error('[FeedList] Failed to fetch new event:', err)
           }
         }
       )

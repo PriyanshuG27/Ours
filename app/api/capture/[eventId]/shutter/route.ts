@@ -5,7 +5,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { eventId } = await params;
 
   const {

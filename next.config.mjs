@@ -18,11 +18,9 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverComponentsExternalPackages: [
-      "@xenova/transformers",
-    ],
-  },
+  serverExternalPackages: [
+    "@xenova/transformers",
+  ],
   webpack: (config, { isServer }) => {
     config.resolve.fallback = { fs: false, path: false, crypto: false };
 

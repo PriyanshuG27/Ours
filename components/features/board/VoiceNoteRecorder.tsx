@@ -65,7 +65,6 @@ export function VoiceNoteRecorder({ onSave, onCancel }: VoiceNoteRecorderProps) 
         }
       }, 30000);
     } catch (err) {
-      console.error("Error accessing microphone:", err);
       alert("Microphone access is required to record a voice note.");
     }
   };

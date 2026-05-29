@@ -109,7 +109,6 @@ export async function GET(request: Request) {
       answers,
     });
   } catch (error: any) {
-    console.error("GET /api/questions/today error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -64,11 +64,15 @@ export function CaptureCamera({
         if (videoRef.current) {
           videoRef.current.srcObject = stream
         }
-      } catch {
+      } catch (err: any) {
         if (!cancelled) {
-          setCameraError(
-            'Camera access denied. Please allow camera permissions and try again.'
-          )
+          if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+            setCameraError('Camera is already in use by another tab or application. (Expected if testing both sides on one machine!)')
+          } else if (err.name === 'NotFoundError') {
+            setCameraError('No camera found on this device.')
+          } else {
+            setCameraError('Camera access denied. Please allow camera permissions and try again.')
+          }
           setState('error')
         }
       }
@@ -177,7 +181,6 @@ export function CaptureCamera({
       const encryptedBytes = await encryptBinary(fileBytes)
       encryptedBlob = new Blob([new Uint8Array(encryptedBytes)], { type: 'application/octet-stream' })
     } catch (err) {
-      console.error('[CaptureCamera] E2EE encryption failed:', err)
       setCameraError('Encryption failed. Unable to securely upload capture.')
       setState('error')
       return

@@ -138,7 +138,6 @@ export function BucketItem({
         }
       }
     } catch (err) {
-      console.error(err)
     }
   }, [item.id, item.status, completionA, completionB, decrypt, isLoaded])
 
@@ -215,7 +214,6 @@ export function BucketItem({
       }
       setShowCompleteModal(true)
     } catch (err) {
-      console.error(err)
     }
   }
 
@@ -235,7 +233,6 @@ export function BucketItem({
       link.download = `bucket-${decryptedTitle.replace(/\s+/g, '-').toLowerCase()}.png`
       link.click()
     } catch (err) {
-      console.error('Export failed:', err)
     }
   }
 
@@ -254,7 +251,6 @@ export function BucketItem({
       })
       onUpdate()
     } catch (err) {
-      console.error(err)
     }
   }
 

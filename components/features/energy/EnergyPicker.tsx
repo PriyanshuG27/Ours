@@ -41,7 +41,6 @@ export function EnergyPicker({ period, onSubmit }: EnergyPickerProps) {
           }
         }
       } catch (err) {
-        console.error("Failed to load energy logs:", err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -71,7 +70,6 @@ export function EnergyPicker({ period, onSubmit }: EnergyPickerProps) {
         setCurrentLevel(null);
       }
     } catch (error) {
-      console.error("Error logging energy:", error);
       setCurrentLevel(null);
     } finally {
       setIsSubmitting(false);

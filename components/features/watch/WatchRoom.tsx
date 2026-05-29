@@ -22,9 +22,7 @@ import {
   ArrowLeft,
   Loader2,
   Square,
-  Hand,
   Check,
-  Cookie,
   Undo2,
   PictureInPicture2,
   Popcorn,
@@ -35,9 +33,12 @@ import Link from "next/link";
 
 // ── Constants ─────────────────────────────────────────────────────────
 
-const COUNTDOWN_SECONDS = 5;
+const COUNTDOWN_SECONDS = 8;
 
 const SPOKEN_NUMBERS: Record<number, string> = {
+  8: "Eight",
+  7: "Seven",
+  6: "Six",
   5: "Five",
   4: "Four",
   3: "Three",

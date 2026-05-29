@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { completionId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ completionId: string }> }) {
+  const params = await props.params;
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -97,7 +95,6 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Flag error:", error);
     return NextResponse.json(
       { error: "Internal Server Error", details: error.message },
       { status: 500 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState, useEffect, useRef, useCallback } from 'react'
+import { ReactNode, useState, useCallback } from 'react'
 import { PresenceProvider } from '@/components/features/home/PresenceProvider'
 import { useE2EEKey } from '@/hooks/use-e2ee-key'
 import { useSpace } from '@/hooks/use-space'
@@ -78,7 +78,7 @@ export function SpaceShell({ children }: { children: ReactNode }) {
       setVerifyError('Incorrect key. Please check and try again.')
       setIsProcessing(false)
     }
-  }, [inputKey, spaceId])
+  }, [inputKey, spaceId, setKeyManually])
 
   // ---- LOADING STATE ----
   if (!spaceLoaded || !keyLoaded) {

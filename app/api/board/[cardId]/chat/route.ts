@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { cardId: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ cardId: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient();
     
@@ -15,21 +13,17 @@ export async function GET(
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("Error fetching messages:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error("Unexpected error fetching messages:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { cardId: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ cardId: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -56,13 +50,11 @@ export async function POST(
       .single();
 
     if (error) {
-      console.error("Error inserting message:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error("Unexpected error posting message:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

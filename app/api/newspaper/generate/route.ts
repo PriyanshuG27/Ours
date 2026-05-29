@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data: userData, error: authError } = await supabase.auth.getUser();
   if (authError || !userData?.user) {
@@ -42,13 +42,11 @@ export async function POST(req: Request) {
       }, { onConflict: 'space_id, published_date' });
 
     if (insertError) {
-      console.error(insertError);
       return NextResponse.json({ error: 'Failed to archive newspaper' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error(err);
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 }

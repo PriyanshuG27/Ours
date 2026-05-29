@@ -204,6 +204,7 @@ export type DictionaryEntry = {
   /** E2EE ciphertext — nullable */
   encrypted_origin: string | null;
   created_at: string;
+  delete_requested_by?: string | null;
 };
 
 export type WeeklyStats = {

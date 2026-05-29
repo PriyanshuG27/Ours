@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { skipId: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ skipId: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient();
     const {
@@ -82,7 +80,6 @@ export async function POST(
 
     return NextResponse.json({ decision }, { status: 200 });
   } catch (error: any) {
-    console.error("POST /api/tasks/skip/[skipId]/respond error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

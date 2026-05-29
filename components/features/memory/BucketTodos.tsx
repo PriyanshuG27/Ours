@@ -42,7 +42,6 @@ export function BucketTodos({ itemId }: { itemId: string }) {
       )
       setTodos(decryptedTodos)
     } catch (err) {
-      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -90,7 +89,6 @@ export function BucketTodos({ itemId }: { itemId: string }) {
       })
       await fetchTodos()
     } catch (err) {
-      console.error(err)
     }
   }
 
@@ -106,7 +104,6 @@ export function BucketTodos({ itemId }: { itemId: string }) {
         body: JSON.stringify({ is_completed: !todo.is_completed }),
       })
     } catch (err) {
-      console.error(err)
       await fetchTodos() // revert
     }
   }
@@ -132,7 +129,6 @@ export function BucketTodos({ itemId }: { itemId: string }) {
         body: JSON.stringify({ assigned_to: newAssigned }),
       })
     } catch (err) {
-      console.error(err)
       await fetchTodos()
     }
   }
@@ -144,7 +140,6 @@ export function BucketTodos({ itemId }: { itemId: string }) {
         method: 'DELETE',
       })
     } catch (err) {
-      console.error(err)
       await fetchTodos()
     }
   }

@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { taskId: string } }
-) {
+export async function POST(request: Request, props: { params: Promise<{ taskId: string }> }) {
+  const params = await props.params;
   try {
     const supabase = await createClient();
     const {
@@ -143,13 +141,12 @@ export async function POST(
             type: 'streak_skip_request',
             data: {}
           }
-        }).catch(e => console.error("Push notification trigger failed", e));
+        }).catch(() => {});
       }
     }
 
     return NextResponse.json({ skipRequestId: skipRequest.id, status }, { status: 201 });
   } catch (error: any) {
-    console.error("POST /api/tasks/[taskId]/skip error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

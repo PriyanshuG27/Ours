@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { SpaceSetup } from '@/components/features/auth/SpaceSetup'
 
 export default async function SetupPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
