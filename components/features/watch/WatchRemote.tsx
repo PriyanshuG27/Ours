@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { Hand, Cookie, Pause, Undo2, Sparkles } from "lucide-react";
+import { Hand, Cookie, Pause, Undo2, Sparkles, Tv } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
 type WatchRemoteProps = {
-  status: "countdown" | "watching";
+  status: "waiting" | "countdown" | "watching";
   countdown: number | null;
   goFlash: boolean;
   onPause: () => void;
@@ -61,6 +61,25 @@ export function WatchRemote({
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [status, onPause, onDismissPause, partnerPaused]);
+
+  // ── WAITING FOR PARTNER ───────────────────────────────────────────
+
+  if (status === "waiting") {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center bg-zinc-950 p-4 select-none">
+        <div className="relative mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/10 border border-violet-500/20">
+          <div className="absolute inset-0 rounded-full bg-violet-500/10 animate-pulse" />
+          <Tv className="h-5 w-5 text-violet-400" />
+        </div>
+        <p className="text-center text-sm font-semibold text-white">
+          Waiting for partner...
+        </p>
+        <p className="mt-1 text-center text-[10px] text-zinc-500">
+          They will start the countdown
+        </p>
+      </div>
+    );
+  }
 
   // ── COUNTDOWN ─────────────────────────────────────────────────────
 
@@ -144,31 +163,33 @@ export function WatchRemote({
       )}
 
       {/* ── Main Controls ────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-3 min-h-0">
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-4">
         {/* Pause Button */}
         <button
           onClick={onPause}
-          className="flex w-full flex-1 items-center justify-center gap-2.5 rounded-2xl bg-amber-500/10 border-2 border-amber-500/25 text-amber-400 transition-all hover:bg-amber-500/20 hover:border-amber-500/40 active:scale-95 min-h-0"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 px-4 py-5 transition-all hover:bg-amber-500/15 hover:border-amber-500/30 active:scale-95 shadow-lg shadow-amber-500/5"
         >
-          <Hand className="h-6 w-6 shrink-0" />
-          <span className="text-sm font-bold tracking-wide">I PAUSED</span>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/20">
+            <Pause className="h-5 w-5 text-amber-400" />
+          </div>
+          <span className="text-base font-bold tracking-wide text-amber-400">Pause for me</span>
         </button>
 
         {/* Snack Break / I'm Back */}
         {iAmOnSnack ? (
           <button
             onClick={onSnackBack}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 px-3 py-2 text-xs font-semibold text-emerald-400 transition-all hover:bg-emerald-500/20 active:scale-95 shrink-0"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3.5 text-sm font-semibold text-emerald-400 transition-all hover:bg-emerald-500/15 active:scale-95 shadow-md shadow-emerald-500/5 shrink-0"
           >
-            <Undo2 className="h-3.5 w-3.5" />
+            <Undo2 className="h-4 w-4" />
             I&apos;m Back!
           </button>
         ) : (
           <button
             onClick={onSnackBreak}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-800/60 border border-zinc-700/40 px-3 py-2 text-xs font-medium text-zinc-500 transition-all hover:bg-zinc-700/60 hover:text-zinc-300 active:scale-95 shrink-0"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-zinc-800/40 border border-zinc-700/30 px-4 py-3.5 text-sm font-medium text-zinc-400 transition-all hover:bg-zinc-800/60 hover:text-zinc-200 active:scale-95 shrink-0"
           >
-            <Cookie className="h-3.5 w-3.5" />
+            <Cookie className="h-4 w-4" />
             Snack Break
           </button>
         )}

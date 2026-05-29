@@ -300,14 +300,22 @@ function WatchContent() {
     if (isCountdownActive && !showRemote) setShowRemote(true);
   }, [isCountdownActive, showRemote]);
 
+  // Clean up PiP if session reverts to idle (e.g. partner declined)
+  useEffect(() => {
+    if (phase === "idle" && pipWindow) {
+      closePip();
+      setShowRemote(false);
+    }
+  }, [phase, pipWindow, closePip]);
+
   useEffect(() => {
     return () => { closePip(); };
   }, [closePip]);
 
   // ── Remote element ────────────────────────────────────────────────
 
-  const remoteStatus: "countdown" | "watching" =
-    isCountdownActive ? "countdown" : "watching";
+  const remoteStatus: "waiting" | "countdown" | "watching" =
+    phase === "ready-check" ? "waiting" : isCountdownActive ? "countdown" : "watching";
 
   const remoteElement = showRemote ? (
     <WatchRemote
@@ -743,9 +751,11 @@ function WatchContent() {
                 />
 
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!titleInput.trim()) return;
-                    void proposeSession(titleInput.trim());
+                    if (pipSupported) await requestPip();
+                    setShowRemote(true);
+                    await proposeSession(titleInput.trim());
                   }}
                   disabled={!titleInput.trim() || !partnerOnline}
                   className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-white px-5 py-4 text-sm font-bold text-black transition-all hover:bg-neutral-100 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-white/5"

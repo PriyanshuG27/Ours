@@ -52,18 +52,9 @@ export function BucketTodos({ itemId }: { itemId: string }) {
 
       const channel = supabase
         .channel(`bucket-todos-${itemId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'bucket_todos',
-            filter: `bucket_item_id=eq.${itemId}`,
-          },
-          () => {
-            fetchTodos()
-          }
-        )
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bucket_todos', filter: `bucket_item_id=eq.${itemId}` }, () => fetchTodos())
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bucket_todos', filter: `bucket_item_id=eq.${itemId}` }, () => fetchTodos())
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'bucket_todos' }, () => fetchTodos())
         .subscribe()
 
       return () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Play, Pause } from "lucide-react";
 
 export function VoiceNotePlayer({ base64Audio }: { base64Audio: string }) {
@@ -26,6 +26,10 @@ export function VoiceNotePlayer({ base64Audio }: { base64Audio: string }) {
     setIsPlaying(!isPlaying);
   };
 
+  const heights = useMemo(() => {
+    return [...Array(20)].map(() => Math.max(20, Math.random() * 100));
+  }, []);
+
   return (
     <div className="flex items-center gap-3 bg-black/40 border border-white/[0.05] rounded-xl p-2 pr-4 w-full">
       <audio 
@@ -45,12 +49,12 @@ export function VoiceNotePlayer({ base64Audio }: { base64Audio: string }) {
       <div className="flex-1 flex items-center">
         {/* Fake waveform */}
         <div className="flex items-center gap-1 w-full h-4">
-          {[...Array(20)].map((_, i) => (
+          {heights.map((height, i) => (
             <div 
               key={i} 
               className={`flex-1 rounded-full ${isPlaying ? 'bg-emerald-400/80 animate-pulse' : 'bg-zinc-600'}`} 
               style={{ 
-                height: `${Math.max(20, Math.random() * 100)}%`,
+                height: `${height}%`,
                 animationDelay: `${i * 0.05}s`
               }} 
             />

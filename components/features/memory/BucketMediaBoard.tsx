@@ -56,11 +56,9 @@ export function BucketMediaBoard({ itemId }: { itemId: string }) {
     fetchMedia()
     const channel = supabase
       .channel(`bucket-media-${itemId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'bucket_media', filter: `bucket_item_id=eq.${itemId}` },
-        () => fetchMedia()
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bucket_media', filter: `bucket_item_id=eq.${itemId}` }, () => fetchMedia())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bucket_media', filter: `bucket_item_id=eq.${itemId}` }, () => fetchMedia())
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'bucket_media' }, () => fetchMedia())
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [itemId, fetchMedia])

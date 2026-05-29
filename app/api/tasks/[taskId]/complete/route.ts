@@ -38,26 +38,26 @@ export async function POST(request: Request, props: { params: Promise<{ taskId: 
       );
     }
 
-    // Verify space membership
-    const { data: space } = await supabase
-      .from("spaces")
-      .select("users")
-      .eq("id", task.space_id)
-      .single();
+    // Parallelize space verification and user completion check
+    const oneDayAgo = new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString();
+    
+    const [spaceRes, userCompletionsRes] = await Promise.all([
+      supabase.from("spaces").select("users").eq("id", task.space_id).single(),
+      supabase.from("task_completions").select("*", { count: "exact", head: true })
+        .eq("task_id", taskId)
+        .eq("completed_by", user.id)
+        .gte("completed_at", oneDayAgo)
+    ]);
 
+    if (spaceRes.error) throw spaceRes.error;
+    if (userCompletionsRes.error) throw userCompletionsRes.error;
+
+    const space = spaceRes.data;
     if (!space || !space.users.includes(user.id)) {
        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if THIS user already completed it today
-    const oneDayAgo = new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString();
-    const { count: userCompletionsToday } = await supabase
-      .from("task_completions")
-      .select("*", { count: "exact", head: true })
-      .eq("task_id", taskId)
-      .eq("completed_by", user.id)
-      .gte("completed_at", oneDayAgo);
-
+    const userCompletionsToday = userCompletionsRes.count;
     if (userCompletionsToday && userCompletionsToday > 0) {
       return NextResponse.json(
         { error: "Already completed today" },
@@ -66,15 +66,31 @@ export async function POST(request: Request, props: { params: Promise<{ taskId: 
     }
 
     let photoPath: string | null = null;
-    if (file) {
-      const fileName = `${task.space_id}/${Date.now()}-${randomUUID()}.webp`;
-      const { error: uploadError } = await supabase.storage
-        .from("media")
-        .upload(fileName, file, { contentType: "image/webp", upsert: false });
+    let fileName = "";
+    
+    // Parallelize file upload and partner completion check (if co-op)
+    const uploadPromise = file 
+      ? (() => {
+          fileName = `${task.space_id}/${Date.now()}-${randomUUID()}.webp`;
+          return supabase.storage.from("media").upload(fileName, file, { contentType: "image/webp", upsert: false });
+        })()
+      : Promise.resolve(null);
       
-      if (!uploadError) {
-        photoPath = fileName;
-      }
+    const partnerCompletionsPromise = task.is_coop 
+      ? supabase.from("task_completions").select("*", { count: "exact", head: true })
+          .eq("task_id", taskId)
+          .neq("completed_by", user.id)
+          .gte("completed_at", oneDayAgo)
+      : Promise.resolve(null);
+
+    const [uploadRes, partnerCompletionsRes] = await Promise.all([uploadPromise, partnerCompletionsPromise]);
+
+    if (partnerCompletionsRes && partnerCompletionsRes.error) {
+      throw partnerCompletionsRes.error;
+    }
+
+    if (uploadRes && !uploadRes.error) {
+      photoPath = fileName;
     }
 
     let newStreakCount = task.streak_count || 0;
@@ -94,31 +110,19 @@ export async function POST(request: Request, props: { params: Promise<{ taskId: 
     const isOwner = task.owner_id === user.id;
 
     if (task.is_coop) {
-       // Co-op logic
-       if (isOwner) {
-         newStreakCount++;
-       } else {
-         newPartnerStreak++;
-       }
+       if (isOwner) newStreakCount++;
+       else newPartnerStreak++;
 
-       // Did the OTHER user complete it today?
-       const { count: partnerCompletionsToday } = await supabase
-         .from("task_completions")
-         .select("*", { count: "exact", head: true })
-         .eq("task_id", taskId)
-         .neq("completed_by", user.id)
-         .gte("completed_at", oneDayAgo);
-
+       const partnerCompletionsToday = partnerCompletionsRes?.count;
        if (partnerCompletionsToday && partnerCompletionsToday > 0) {
          newSharedStreak++;
        }
     } else {
-       // Personal logic
        newStreakCount++;
     }
 
-    // 1. Update tasks
-    const { error: updateError } = await supabase
+    // Parallelize updating the task and inserting the completion
+    const updateTaskPromise = supabase
       .from("tasks")
       .update({
         streak_count: newStreakCount,
@@ -130,10 +134,7 @@ export async function POST(request: Request, props: { params: Promise<{ taskId: 
       })
       .eq("id", taskId);
 
-    if (updateError) throw updateError;
-
-    // 2. Insert task_completion
-    const { data: insertedCompletion, error: completionError } = await supabase
+    const insertCompletionPromise = supabase
       .from("task_completions")
       .insert({
         task_id: taskId,
@@ -145,9 +146,12 @@ export async function POST(request: Request, props: { params: Promise<{ taskId: 
       .select("id")
       .single();
 
-    if (completionError) throw completionError;
+    const [updateResult, completionResult] = await Promise.all([updateTaskPromise, insertCompletionPromise]);
 
-    // 3. Insert feed_event for all completions
+    if (updateResult.error) throw updateResult.error;
+    if (completionResult.error) throw completionResult.error;
+
+    // Finally, insert the feed event
     await supabase.from("feed_events").insert({
       space_id: task.space_id,
       author_id: user.id,
@@ -157,7 +161,7 @@ export async function POST(request: Request, props: { params: Promise<{ taskId: 
         taskTitle: task.title,
         moodTag,
         streakCount: task.is_coop ? newSharedStreak : newStreakCount,
-        completionId: insertedCompletion.id,
+        completionId: completionResult.data.id,
       },
     });
 

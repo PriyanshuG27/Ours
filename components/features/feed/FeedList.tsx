@@ -32,38 +32,54 @@ export function FeedList({ refreshKey }: FeedListProps) {
   const [loadingMore, setLoadingMore] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  // Subscribe to real-time inserts
+  // Subscribe to real-time events
   useEffect(() => {
     if (!spaceId) return
 
     const channel = supabase
-      .channel('feed-inserts')
+      .channel(`feed-${spaceId}`)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'feed_events',
           filter: `space_id=eq.${spaceId}`,
         },
         async (payload) => {
-          const newEventId = payload.new.id
-          
-          try {
-            // Fetch the latest event from the server so it comes with a properly signed URL
-            const res = await fetch('/api/feed/events?limit=1')
-            if (!res.ok) return
+          if (payload.eventType === 'INSERT') {
+            const newEventId = payload.new.id
             
-            const data = await res.json()
-            const fullEvent = data.events?.find((e: FeedEvent) => e.id === newEventId)
-            
-            if (fullEvent) {
-              setEvents((prev) => {
-                if (prev.some((e) => e.id === fullEvent.id)) return prev
-                return [fullEvent, ...prev]
-              })
+            try {
+              // Fetch the latest events from the server so it comes with properly signed URLs
+              const res = await fetch('/api/feed/events?limit=5')
+              if (!res.ok) return
+              
+              const data = await res.json()
+              const fullEvent = data.events?.find((e: FeedEvent) => e.id === newEventId)
+              
+              if (fullEvent) {
+                setEvents((prev) => {
+                  if (prev.some((e) => e.id === fullEvent.id)) return prev
+                  return [fullEvent, ...prev]
+                })
+              }
+            } catch {}
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedRow = payload.new as FeedEvent;
+            setEvents((prev) =>
+              prev.map((e) =>
+                e.id === updatedRow.id
+                  ? { ...e, is_pinned: updatedRow.is_pinned, delete_requested_by: updatedRow.delete_requested_by }
+                  : e
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const deletedRow = payload.old;
+            if (deletedRow?.id) {
+              setEvents((prev) => prev.filter((e) => e.id !== deletedRow.id));
             }
-          } catch {}
+          }
         }
       )
       .subscribe()
