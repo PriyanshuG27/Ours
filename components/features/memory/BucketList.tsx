@@ -27,6 +27,7 @@ export function BucketList() {
   const [items, setItems] = useState<BucketItem[]>([])
   const [decryptedWhys, setDecryptedWhys] = useState<Map<string, string>>(new Map())
   const [decryptedTitles, setDecryptedTitles] = useState<Map<string, string>>(new Map())
+  const [decryptedCategories, setDecryptedCategories] = useState<Map<string, string>>(new Map())
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabId>('someday')
 
@@ -46,6 +47,7 @@ export function BucketList() {
       // Decrypt all why and title values
       const whyMap = new Map<string, string>()
       const titleMap = new Map<string, string>()
+      const catMap = new Map<string, string>()
       await Promise.all(
         fetchedItems.map(async (item) => {
           if (item.title) {
@@ -57,6 +59,14 @@ export function BucketList() {
             }
           } else {
             titleMap.set(item.id, 'Untitled')
+          }
+          if (item.category) {
+            try {
+              const decryptedCat = await decrypt(item.category)
+              catMap.set(item.id, decryptedCat)
+            } catch {
+              catMap.set(item.id, item.category)
+            }
           }
           if (item.encrypted_why) {
             try {
@@ -71,6 +81,7 @@ export function BucketList() {
       )
       setDecryptedWhys(whyMap)
       setDecryptedTitles(titleMap)
+      setDecryptedCategories(catMap)
     } catch (err) {
       console.error('Bucket fetch error:', err)
     } finally {
@@ -125,10 +136,11 @@ export function BucketList() {
     try {
       const encryptedWhy = why.trim() ? await encrypt(why) : await encrypt('')
       const encryptedTitle = await encrypt(title.trim())
+      const encryptedCategory = category ? await encrypt(category) : ''
       const res = await fetch('/api/bucket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ encryptedTitle, encryptedWhy, category }),
+        body: JSON.stringify({ encryptedTitle, encryptedWhy, category: encryptedCategory }),
       })
 
       if (!res.ok) throw new Error('Failed to create bucket item')
@@ -145,7 +157,7 @@ export function BucketList() {
 
   const filteredItems = items.filter((item) => {
     const matchesTab = item.status === TABS.find((t) => t.id === activeTab)?.status
-    const matchesCategory = categoryFilter ? item.category === categoryFilter : true
+    const matchesCategory = categoryFilter ? decryptedCategories.get(item.id) === categoryFilter : true
     return matchesTab && matchesCategory
   })
 

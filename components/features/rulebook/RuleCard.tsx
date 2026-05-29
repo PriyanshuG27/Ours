@@ -9,6 +9,7 @@ export interface DecryptedRule {
   status: 'proposed' | 'active' | 'retired'
   decryptedText: string
   category: string
+  decryptedCategory: string
   decryptedPenalty: string | null
 }
 
@@ -28,7 +29,7 @@ export function RuleCard({ rule, isAuthor, onStatusChange, onChargeClick }: Rule
       <div className="flex items-start justify-between gap-4">
         <div>
           <span className="mb-1 inline-block text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
-            {rule.category}
+            {rule.decryptedCategory}
           </span>
           <p className="text-base text-neutral-200 leading-relaxed">
             {rule.decryptedText}

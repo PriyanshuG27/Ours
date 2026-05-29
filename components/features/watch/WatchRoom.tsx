@@ -12,6 +12,7 @@ import {
   useEventListener,
 } from "@/lib/liveblocks/config";
 import { useSpaceStore } from "@/store/space.store";
+import { useE2EEKey } from "@/hooks/use-e2ee-key";
 import { useDocumentPip } from "@/hooks/use-document-pip";
 import { WatchRemote } from "@/components/features/watch/WatchRemote";
 import {
@@ -65,6 +66,8 @@ function WatchContent() {
   const userId = useSpaceStore((s) => s.userId);
   const partnerName = useSpaceStore((s) => s.partnerName);
   const displayName = partnerName ?? "Partner";
+  const { encrypt, decrypt } = useE2EEKey();
+  const [decryptedTitle, setDecryptedTitle] = useState("");
 
   const [titleInput, setTitleInput] = useState("");
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -100,8 +103,21 @@ function WatchContent() {
   const broadcast = useBroadcastEvent();
 
   const isHost = Boolean(userId && watchState?.hostId === userId);
-  const sessionTitle = watchState?.title || "";
+  const rawTitle = watchState?.title || "";
   const sessionStartedAt = watchState?.updatedAt ?? 0;
+
+  // Decrypt encrypted title from Liveblocks
+  useEffect(() => {
+    let active = true;
+    if (!rawTitle) {
+      setDecryptedTitle("");
+      return;
+    }
+    decrypt(rawTitle)
+      .then((dec) => { if (active) setDecryptedTitle(dec); })
+      .catch(() => { if (active) setDecryptedTitle(rawTitle); });
+    return () => { active = false; };
+  }, [rawTitle, decrypt]);
 
   const phase: SessionPhase = (() => {
     if (!watchState?.hostId) return "idle";
@@ -131,11 +147,11 @@ function WatchContent() {
 
   // ── Mutations ─────────────────────────────────────────────────────
 
-  const proposeSession = useMutation(
-    ({ storage }, title: string) => {
+  const proposeSessionMutation = useMutation(
+    ({ storage }, encryptedTitle: string) => {
       const ws = storage.get("watchState");
       if (!ws || !userId) return;
-      ws.set("title", title);
+      ws.set("title", encryptedTitle);
       ws.set("hostId", userId);
       ws.set("isPlaying", false);
       ws.set("videoUrl", null);
@@ -144,6 +160,11 @@ function WatchContent() {
     },
     [userId],
   );
+
+  const proposeSession = useCallback(async (title: string) => {
+    const encrypted = await encrypt(title);
+    proposeSessionMutation(encrypted);
+  }, [encrypt, proposeSessionMutation]);
 
   const markPlaying = useMutation(({ storage }) => {
     const ws = storage.get("watchState");
@@ -405,10 +426,10 @@ function WatchContent() {
                 <p className="text-emerald-400 text-sm font-semibold">Press play now! 🎬</p>
               )}
             </div>
-            {sessionTitle && (
+            {rawTitle && (
               <div className="inline-flex items-center gap-2 rounded-full bg-zinc-800/50 border border-zinc-700/40 px-4 py-2">
                 <Tv className="h-3.5 w-3.5 text-zinc-500" />
-                <span className="text-xs text-zinc-500">{sessionTitle}</span>
+                <span className="text-xs text-zinc-500">{decryptedTitle || '…'}</span>
               </div>
             )}
           </div>
@@ -439,7 +460,7 @@ function WatchContent() {
                       Now Watching
                     </p>
                     <h2 className="text-xl font-bold text-white leading-tight">
-                      {sessionTitle}
+                      {decryptedTitle || '…'}
                     </h2>
                   </div>
                   <div className="flex items-center gap-1.5 rounded-xl bg-zinc-800/70 border border-zinc-700/40 px-3 py-1.5 tabular-nums">
@@ -589,7 +610,7 @@ function WatchContent() {
                     </h2>
                     <div className="inline-flex items-center gap-2 rounded-full bg-zinc-800/60 border border-zinc-700/40 px-4 py-1.5">
                       <Tv className="h-3.5 w-3.5 text-violet-400" />
-                      <span className="text-sm text-zinc-300">{sessionTitle}</span>
+                      <span className="text-sm text-zinc-300">{decryptedTitle || '…'}</span>
                     </div>
                   </div>
                 </div>
@@ -713,7 +734,7 @@ function WatchContent() {
                   onChange={(e) => setTitleInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && titleInput.trim() && partnerOnline) {
-                      proposeSession(titleInput.trim());
+                      void proposeSession(titleInput.trim());
                     }
                   }}
                   placeholder='e.g. "Breaking Bad S3E5"'
@@ -723,7 +744,7 @@ function WatchContent() {
                 <button
                   onClick={() => {
                     if (!titleInput.trim()) return;
-                    proposeSession(titleInput.trim());
+                    void proposeSession(titleInput.trim());
                   }}
                   disabled={!titleInput.trim() || !partnerOnline}
                   className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-white px-5 py-4 text-sm font-bold text-black transition-all hover:bg-neutral-100 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-white/5"

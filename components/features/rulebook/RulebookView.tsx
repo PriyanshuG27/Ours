@@ -46,7 +46,11 @@ export function RulebookView() {
           (rulesData.rules || []).map(async (r: any) => {
             const decryptedText = await decrypt(r.encrypted_text)
             const decryptedPenalty = r.encrypted_penalty ? await decrypt(r.encrypted_penalty) : null
-            return { ...r, decryptedText, decryptedPenalty }
+            let decryptedCategory = 'Household'
+            if (r.category) {
+              try { decryptedCategory = await decrypt(r.category) } catch { decryptedCategory = r.category }
+            }
+            return { ...r, decryptedText, decryptedPenalty, decryptedCategory }
           })
         )
 
@@ -94,10 +98,11 @@ export function RulebookView() {
     try {
       const encryptedText = await encrypt(newRuleText)
       const encryptedPenalty = newPenaltyText.trim() ? await encrypt(newPenaltyText) : undefined
+      const encryptedCategory = await encrypt(category)
       const res = await fetch('/api/rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ encryptedText, encryptedPenalty, category })
+        body: JSON.stringify({ encryptedText, encryptedPenalty, category: encryptedCategory })
       })
       
       if (res.ok) {
@@ -256,8 +261,9 @@ export function RulebookView() {
   const categoryCounts: Record<string, number> = {}
   let totalEntries = 0
   entries.forEach(e => {
-    // Note: We need category from the database payload. If e.rules is missing or category is missing, default to 'Other'
-    const cat = (e as any).rules?.category || 'Household'
+    // Note: We need decrypted category from the rule. If e.rules is missing or decryptedCategory is missing, default to 'Other'
+    const matchingRule = rules.find(r => r.id === (e as any).rule_id)
+    const cat = matchingRule?.decryptedCategory || 'Household'
     categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
     totalEntries++
   })
